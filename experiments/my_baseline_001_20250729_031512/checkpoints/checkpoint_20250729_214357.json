@@ -1,0 +1,1027 @@
+{
+  "state": {
+    "experiment_name": "my_baseline_001",
+    "config": {
+      "num_scenarios": 100,
+      "max_turns": 20,
+      "turn_timeout": 30.0,
+      "models": [
+        "llama3.1"
+      ],
+      "strategies": [
+        "cooperative",
+        "fair",
+        "aggressive"
+      ]
+    },
+    "start_time": "2025-07-29 03:15:12.627057",
+    "scenarios_total": 100,
+    "scenarios_completed": 0,
+    "scenarios_failed": 200,
+    "last_checkpoint": "2025-07-29 15:04:50.939451"
+  },
+  "completed_negotiations": {},
+  "failed_negotiations": {
+    "test_00042": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058696"
+    },
+    "test_00768": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058704"
+    },
+    "test_00073": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058707"
+    },
+    "test_00186": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058709"
+    },
+    "test_00053": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058712"
+    },
+    "test_00193": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058714"
+    },
+    "test_00652": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058716"
+    },
+    "test_00701": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058718"
+    },
+    "test_00262": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058720"
+    },
+    "test_00007": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058723"
+    },
+    "test_00081": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058725"
+    },
+    "test_00336": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058728"
+    },
+    "test_00573": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058730"
+    },
+    "test_00560": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058732"
+    },
+    "test_00537": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058734"
+    },
+    "test_00678": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058737"
+    },
+    "test_00283": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058740"
+    },
+    "test_00464": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058742"
+    },
+    "test_00245": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058744"
+    },
+    "test_00408": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058746"
+    },
+    "test_00381": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058749"
+    },
+    "test_00247": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058751"
+    },
+    "test_00124": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058753"
+    },
+    "test_00791": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058755"
+    },
+    "test_00052": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058757"
+    },
+    "test_00330": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058759"
+    },
+    "test_00418": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058761"
+    },
+    "test_00130": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058763"
+    },
+    "test_00076": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058765"
+    },
+    "test_00697": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058767"
+    },
+    "test_00790": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058770"
+    },
+    "test_00440": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058772"
+    },
+    "test_00021": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058774"
+    },
+    "test_00794": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058776"
+    },
+    "test_00332": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058778"
+    },
+    "test_00670": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058780"
+    },
+    "test_00208": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058782"
+    },
+    "test_00036": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058784"
+    },
+    "test_00075": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058786"
+    },
+    "test_00374": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058788"
+    },
+    "test_00548": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058790"
+    },
+    "test_00598": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058792"
+    },
+    "test_00583": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058794"
+    },
+    "test_00323": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058796"
+    },
+    "test_00559": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058798"
+    },
+    "test_00352": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058800"
+    },
+    "test_00488": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058802"
+    },
+    "test_00815": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058804"
+    },
+    "test_00414": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058806"
+    },
+    "test_00235": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058808"
+    },
+    "test_00062": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058811"
+    },
+    "test_00181": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058813"
+    },
+    "test_00335": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058815"
+    },
+    "test_00568": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058817"
+    },
+    "test_00518": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058819"
+    },
+    "test_00317": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058821"
+    },
+    "test_00268": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058823"
+    },
+    "test_00242": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058825"
+    },
+    "test_00325": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058827"
+    },
+    "test_00621": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058829"
+    },
+    "test_00175": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058831"
+    },
+    "test_00536": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058833"
+    },
+    "test_00281": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058835"
+    },
+    "test_00582": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058837"
+    },
+    "test_00632": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058839"
+    },
+    "test_00520": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058841"
+    },
+    "test_00534": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058844"
+    },
+    "test_00160": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058846"
+    },
+    "test_00412": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058848"
+    },
+    "test_00798": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058850"
+    },
+    "test_00289": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058852"
+    },
+    "test_00736": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058854"
+    },
+    "test_00433": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058857"
+    },
+    "test_00837": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058859"
+    },
+    "test_00397": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058861"
+    },
+    "test_00810": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058863"
+    },
+    "test_00635": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058866"
+    },
+    "test_00471": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058868"
+    },
+    "test_00752": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058870"
+    },
+    "test_00809": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058872"
+    },
+    "test_00456": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058875"
+    },
+    "test_00020": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058877"
+    },
+    "test_00704": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058879"
+    },
+    "test_00777": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058882"
+    },
+    "test_00165": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058884"
+    },
+    "test_00778": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058886"
+    },
+    "test_00132": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058888"
+    },
+    "test_00706": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058891"
+    },
+    "test_00199": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058893"
+    },
+    "test_00234": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058895"
+    },
+    "test_00480": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058897"
+    },
+    "test_00402": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058899"
+    },
+    "test_00491": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058901"
+    },
+    "test_00493": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058903"
+    },
+    "test_00032": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058905"
+    },
+    "test_00679": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058907"
+    },
+    "test_00830": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058909"
+    },
+    "test_00093": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058912"
+    },
+    "test_00139": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058914"
+    },
+    "test_00191": {
+      "error": "No agreement reached",
+      "context": {
+        "buyer_model": "llama3.1",
+        "seller_model": "llama3.1",
+        "buyer_strategy": "cooperative",
+        "seller_strategy": "fair"
+      },
+      "timestamp": "2025-07-29T21:43:57.058917"
+    }
+  },
+  "model_pair_metrics": {}
+}

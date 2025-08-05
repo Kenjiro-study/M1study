@@ -57,7 +57,20 @@ STRATEGIES = {
         "communication_style": "Warm, friendly, and collaborative", 
         "risk_tolerance": "low",
         "patience": "low"
-    }
+    },
+
+    "free": {
+        "name": "free",
+        "description": """
+            You are a free negotiator who:
+            - This strategy is for human negotiators
+        """,
+        "initial_approach": "free",
+        "counter_offer_style": "free",
+        "communication_style": "free",
+        "risk_tolerance": "free",
+        "patience": "free"
+    },
 }
 
 # 交渉をさらに進めるための category-specific なコンテキスト

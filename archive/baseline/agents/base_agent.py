@@ -138,7 +138,7 @@ class BaseAgent:
         # すべてのモジュールで提供された言語モデルを使用するように DSPy を構成する
         dspy.settings.configure(lm=lm)
 
-    def update_state(self, message: Dict[str, str]):
+    def update_state(self, message: Dict[str, str]) -> Dict:
         """
         LLM extraction を使用して交渉状態を更新する
         StateExtractor を使用して, メッセージから構造化された情報を取得する
@@ -164,6 +164,7 @@ class BaseAgent:
         if extraction.extracted_price is not None:
             self.current_price = extraction.extracted_price
             self.price_history.append(extraction.extracted_price)
+        #self.lm.inspect_history(n=1) ###############################
 
         # action 状態を更新する
         self.last_action = extraction.detected_action
@@ -171,6 +172,13 @@ class BaseAgent:
         # 必要に応じてデバッグ情報に抽出理由を追加する
         if hasattr(self, 'extraction_history'):
             self.extraction_history.append(extraction.reasoning)
+
+        message.update({
+            "price": extraction.extracted_price,
+            "status": extraction.detected_action,
+        })
+
+        return message
 
     def _get_prediction_context(self) -> Dict:
         """予測の context を取得する"""
@@ -184,7 +192,7 @@ class BaseAgent:
             "num_turns": self.num_turns
         }
 
-    def predict_action(self) -> Dict:
+    def predict_action_maneger(self) -> Dict:
         """
         交渉における次の action を予測する
 
@@ -192,6 +200,7 @@ class BaseAgent:
             action の予測とその根拠を含む辞書
         """
         prediction = self.state_predictor(**self._get_prediction_context())
+        #self.lm.inspect_history(n=1) ###############################
         return {
             "rationale": prediction.rationale,
             "action": prediction.action,
@@ -251,7 +260,7 @@ class BaseAgent:
             'coherence': analysis.coherence_score
         }
 
-    def generate_response(self, action: str, price: Optional[float] = None) -> str:
+    def prepare_response_generation(self, action: str, price: Optional[float] = None) -> Dict:
         """自然言語の応答を生成する"""
         from ..utils.model_loader import MODEL_CONFIGS
 
@@ -280,15 +289,12 @@ class BaseAgent:
         prompt += f"\nCategory context: {self.category_context['market_dynamics']}"
         
         context.update({
-            "complete_prompt": prompt,
             "action": action,
-            "price": price
+            "price": price,
+            "complete_prompt": prompt,
         })
-        
-        prediction = self.response_predictor(**context)
-        #self.lm.inspect_history(n=1) # LLMに与えられるプロンプトを知りたい場合はコメントアウトを外す！
-        
-        return prediction.response
+
+        return context
 
     def step(self) -> Dict[str, str]:
         """
@@ -299,23 +305,25 @@ class BaseAgent:
         """
 
         # 次の action を予測する
-        prediction = self.predict_action()
+        prediction = self.predict_action_maneger()
         print("prediction: ", prediction)
 
         # 自然言語の応答を生成する
-        response = self.generate_response(
+        context = self.prepare_response_generation(
             prediction["action"], 
             prediction["counter_price"]
         )
+        response_prediction = self.response_predictor(**context)
+        #self.lm.inspect_history(n=1) ###############################
 
         # メッセージを作成する
         message = {
             "role": self.role,
-            "content": response
+            "content": response_prediction.response
         }
 
         # 自分自身の状態を更新する
-        self.update_state(message)
+        message = self.update_state(message)
 
         return message
 
@@ -326,17 +334,17 @@ def test_base_agent():
     agreemate_dir = os.path.dirname(baseline_dir)
     pretrained_dir = os.path.join(agreemate_dir, "models", "pretrained")
     
-    test_lm = dspy.LM(
-        model="openai/llama3.1", # llama3.1という名前だが一応llama-3.1-8Bらしい
-        api_base="http://localhost:11434/v1",
-        api_key="",
-        cache_dir=pretrained_dir
-    )
     #test_lm = dspy.LM(
-        #model="ollama/llama3.1",
-        #provider="ollama",
-        #cache_dir=pretrained_dir,
+        #model="openai/llama3.1", # llama3.1という名前だが一応llama-3.1-8Bらしい
+        #api_base="http://localhost:11434/v1",
+        #api_key="",
+        #cache_dir=pretrained_dir
     #)
+    test_lm = dspy.LM(
+        model="ollama/llama3.1",
+        provider="ollama",
+        cache_dir=pretrained_dir,
+    )
 
     agent = BaseAgent(
         strategy_name="cooperative",

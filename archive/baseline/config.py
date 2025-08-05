@@ -64,6 +64,17 @@ EXPERIMENT_CONFIGS: Dict[str, ExperimentConfig] = {
         max_turns=20,
         turn_timeout=30.0,
         models=["llama3.1"],
+        #models=["llama3.1", "llama-3.1-70b"],
+        #strategies=["cooperative", "fair", "aggressive"]
+        strategies=["cooperative"]
+    ),
+    "human_negotiation": ExperimentConfig(
+        #num_scenarios=100,
+        num_scenarios=1,
+        max_turns=20,
+        turn_timeout=30.0,
+        models=["llama3.1"],
+        #models=["llama3.1", "llama-3.1-70b"],
         #strategies=["cooperative", "fair", "aggressive"]
         strategies=["cooperative"]
     ),

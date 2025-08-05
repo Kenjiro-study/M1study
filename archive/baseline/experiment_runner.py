@@ -58,21 +58,40 @@ class ExperimentRunner:
             config=self.config
         )
 
-        self.model_combinations = self._generate_model_combinations()
+        self.model_combinations = self._generate_model_combinations(config_name)
 
-    def _generate_model_combinations(self) -> List[Dict]:
+    def _generate_model_combinations(self, config_name) -> List[Dict]:
         """テストする全てのモデルと戦略の組み合わせを生成する"""
         combinations = []
-        for buyer_model in self.config.models:
-            for seller_model in self.config.models:
+        # 対人実験のmodel_combinationを追加 2025/8/4
+        if config_name == "human_negotiation":
+            for buyer_model in self.config.models:
                 for buyer_strategy in self.config.strategies:
-                    for seller_strategy in self.config.strategies:
-                        combinations.append({
-                            'buyer_model': buyer_model,
-                            'seller_model': seller_model,
-                            'buyer_strategy': buyer_strategy,
-                            'seller_strategy': seller_strategy
-                        })
+                    combinations.append({
+                                'buyer_model': buyer_model,
+                                'seller_model': "human",
+                                'buyer_strategy': buyer_strategy,
+                                'seller_strategy': "free"
+                            })
+            for seller_model in self.config.models:
+                for seller_strategy in self.config.strategies:
+                    combinations.append({
+                                'buyer_model': "human",
+                                'seller_model': seller_model,
+                                'buyer_strategy': "free",
+                                'seller_strategy': seller_strategy
+                            })
+        else:
+            for buyer_model in self.config.models:
+                for seller_model in self.config.models:
+                    for buyer_strategy in self.config.strategies:
+                        for seller_strategy in self.config.strategies:
+                            combinations.append({
+                                'buyer_model': buyer_model,
+                                'seller_model': seller_model,
+                                'buyer_strategy': buyer_strategy,
+                                'seller_strategy': seller_strategy
+                            })
         return combinations
 
     async def _run_single_combination(

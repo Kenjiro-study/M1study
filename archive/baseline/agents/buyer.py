@@ -81,7 +81,7 @@ class BuyerAgent(BaseAgent):
             'recommended_flexibility': analysis.recommended_flexibility
         }
 
-    def update_state(self, message: Dict[str, str]):
+    def update_state(self, message: Dict[str, str]) -> Dict:
         """buyer-specific tracking で状態を更新"""
         super().update_state(message) # 基本状態の更新
                                         # (conversation, price history, actions, etc)
@@ -99,9 +99,11 @@ class BuyerAgent(BaseAgent):
             else:
                 self.moves_since_concession += 1
 
-    def predict_action(self) -> Dict:
+        return message
+
+    def predict_action_maneger(self) -> Dict:
         """オーバーライドして buyer-specific の戦略上考慮すべき事項を追加する"""
-        prediction = super().predict_action() # base prediction を取得する
+        prediction = super().predict_action_maneger() # base prediction を取得する
 
         # buyer context を追加
         analysis = self._analyze_state()
@@ -117,46 +119,19 @@ class BuyerAgent(BaseAgent):
         return prediction
     
     # 2025/7/15 変更
-    def generate_response(self, action: str, price: Optional[float] = None) -> str:
-        from ..utils.model_loader import MODEL_CONFIGS
+    def prepare_response_generation(self, action: str, price: Optional[float] = None) -> Dict:
+        context = super().prepare_response_generation(action, price) # base prediction を取得する
 
-        # BaseAgentと同様のコンテキストとプロンプト構築ロジック
-        context = self._get_prediction_context()
-        history_text = "\n".join([
-            f"{msg['role']}: {msg['content']}"
-            for msg in self.conversation_history
-        ])
-
-        model_name = self.lm.model.split('/')[-1]
-        template = MODEL_CONFIGS[model_name].prompt_template
-        prompt = template.format(
-            role=self.role,
-            strategy=self.strategy['description'],
-            history=history_text,
-            target_price=self.target_price,
-            item=context.get('item', {'title': 'the item'})['title']
-        )
-        prompt += f"\n\nYour negotiation approach: {self.strategy['initial_approach']}"
-        prompt += f"\nCommunication style: {self.strategy['communication_style']}"
-        prompt += f"\nCategory context: {self.category_context['market_dynamics']}"
-
-        """buyer-specific の応答を生成する"""
         analysis = self._analyze_state()
 
         # 必要な情報をすべて渡してpredictorを呼び出す
         context.update({
-            "complete_prompt": prompt,
-            "action": action,
-            "price": price,
             # buyer-specific context を追加する
             "price_sentiment": analysis['price_sentiment'],
             "bargaining_power": analysis['bargaining_power']
         })
 
-        prediction = self.response_predictor(**context)
-        return prediction.response
-
-
+        return context
 
 def test_buyer_agent():
     """Test buyer agent の機能をテストする"""
@@ -168,10 +143,9 @@ def test_buyer_agent():
     pretrained_dir = os.path.join(agreemate_dir, "models", "pretrained")
 
     test_lm = dspy.LM(
-        model="openai/llama3.1", # llama3.1という名前だが一応llama-3.1-8Bらしい
-        api_base="http://localhost:11434/v1",
-        api_key="",
-        cache_dir=pretrained_dir
+        model="ollama/llama3.1",
+        provider="ollama",
+        cache_dir=pretrained_dir,
     )
 
     # buyer agent の作成
@@ -182,13 +156,6 @@ def test_buyer_agent():
         max_price=120.0,
         lm=test_lm
     )
-    print("buyer: ", buyer)
-    print("strategy: ", buyer.strategy)
-    print("target_price: ", buyer.target_price)
-    print("category: ", buyer.category)
-    print("max_price: ", buyer.max_price)
-    print("lm.model: ", buyer.lm.model)
-
 
     # 初期化のテスト
     assert buyer.role == "buyer"

@@ -6,6 +6,7 @@ from datetime import datetime
 
 from .agents.buyer import BuyerAgent
 from .agents.seller import SellerAgent
+from .agents.human import HumanAgent
 from .scenario_manager import NegotiationScenario
 from .dspy_manager import DSPyManager
 
@@ -66,36 +67,90 @@ class NegotiationRunner:
         self.semaphore = asyncio.Semaphore(max_concurrent)
         self.active_negotiations: Dict[str, NegotiationMetrics] = {}
 
-    def _initialize_agents(
-        self,
-        config: NegotiationConfig
-    ) -> Tuple[BuyerAgent, SellerAgent]:
+    def _show_scenario(self,scenario):
+            print("\n--------Let's Negotiate!--------\n" \
+            f"Title: {scenario.title}\n" \
+            f"Category: {scenario.category}\n" \
+            f"List Price: {scenario.list_price}\n" \
+            f"description: {scenario.description}\n")
+ 
+
+    def _initialize_agents(self,config: NegotiationConfig):
         """交渉のために買い手エージェントと売り手エージェントを初期化する"""
-        # 戦略固有の構成をもつ DSPy LMs を取得する
-        buyer_lm, seller_lm = self.dspy_manager.configure_negotiation(
-            config.buyer_model,
-            config.seller_model,
-            config.buyer_strategy,
-            config.seller_strategy
-        )
 
-        # シナリオのコンテキストでエージェントを作成する
-        buyer = BuyerAgent(
-            strategy_name=config.buyer_strategy,
-            target_price=config.scenario.buyer_target,
-            category=config.scenario.category,
-            max_price=config.scenario.list_price,
-            lm=buyer_lm
-        )
+        if config.buyer_model == "human":
+            seller_lm = self.dspy_manager.get_lm(
+                config.seller_model,
+                strategy_name=config.seller_strategy,
+                role='seller'
+            )
 
-        seller = SellerAgent(
-            strategy_name=config.seller_strategy,
-            target_price=config.scenario.seller_target,
-            category=config.scenario.category,
-            initial_price=config.scenario.list_price,
-            min_price=config.scenario.seller_target * 0.9, # 10% below target
-            lm=seller_lm
-        )
+            buyer = HumanAgent(
+                strategy_name=config.buyer_strategy,
+                target_price=config.scenario.buyer_target,
+                category=config.scenario.category,
+                is_buyer=True,
+                lm=seller_lm
+            )
+
+            seller = SellerAgent(
+                strategy_name=config.seller_strategy,
+                target_price=config.scenario.seller_target,
+                category=config.scenario.category,
+                initial_price=config.scenario.list_price,
+                min_price=config.scenario.seller_target * 0.9, # 10% below target
+                lm=seller_lm
+            )
+
+        elif config.seller_model == "human":
+            buyer_lm = self.dspy_manager.get_lm(
+                config.buyer_model,
+                strategy_name=config.buyer_strategy,
+                role='buyer'
+            )
+
+            buyer = BuyerAgent(
+                strategy_name=config.buyer_strategy,
+                target_price=config.scenario.buyer_target,
+                category=config.scenario.category,
+                max_price=config.scenario.list_price,
+                lm=buyer_lm
+            )
+            
+            seller = HumanAgent(
+                strategy_name=config.seller_strategy,
+                target_price=config.scenario.seller_target,
+                category=config.scenario.category,
+                is_buyer=False,
+                lm=buyer_lm
+            )
+
+        else:
+            # 戦略固有の構成をもつ DSPy LMs を取得する
+            buyer_lm, seller_lm = self.dspy_manager.configure_negotiation(
+                config.buyer_model,
+                config.seller_model,
+                config.buyer_strategy,
+                config.seller_strategy
+            )
+
+            # シナリオのコンテキストでエージェントを作成する
+            buyer = BuyerAgent(
+                strategy_name=config.buyer_strategy,
+                target_price=config.scenario.buyer_target,
+                category=config.scenario.category,
+                max_price=config.scenario.list_price,
+                lm=buyer_lm
+            )
+
+            seller = SellerAgent(
+                strategy_name=config.seller_strategy,
+                target_price=config.scenario.seller_target,
+                category=config.scenario.category,
+                initial_price=config.scenario.list_price,
+                min_price=config.scenario.seller_target * 0.9, # 10% below target
+                lm=seller_lm
+            )
 
         return buyer, seller
 
@@ -146,11 +201,11 @@ class NegotiationRunner:
             async with asyncio.timeout(timeout):
                 response = current_agent.step() # 2025/7/18 await current_agent.step()のawait削除
 
-                # 2025/7/18 交渉の流れを見るためのprint追加
+                # 2025/7/18 交渉の流れを見るためのprint追加 ##########################
                 if current_agent.is_buyer == True:
-                    print("buyer: ", response)
+                    print("buyer: ", response["content"])
                 else:
-                    print("seller: ", response)
+                    print("seller: ", response["content"])
 
 
                 # message の構造を検証する
@@ -225,6 +280,9 @@ class NegotiationRunner:
 
                 # active な交渉をトラッキングする
                 self.active_negotiations[config.scenario.scenario_id] = metrics
+
+                # scenarioの内容を表示する
+                self._show_scenario(config.scenario)
 
                 # 交渉ターンを実行する
                 continue_negotiation = True

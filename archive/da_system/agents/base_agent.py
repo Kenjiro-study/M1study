@@ -3,6 +3,11 @@ import os, dspy
 from typing import Dict, List, Optional
 
 from ..strategies import STRATEGIES, CATEGORY_CONTEXT
+import pandas as pd
+from transformers import AutoTokenizer
+from transformers import AutoModelForSequenceClassification
+import torch
+from torch.nn.functional import softmax
 
 # 交渉メッセージから構造化された状態情報を抽出する
 class StateExtractor(dspy.Signature):
@@ -130,6 +135,12 @@ class BaseAgent:
         self.current_price = None
         self.num_turns = 0
 
+        # パーサー用
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.checkpoint = "archive/da_system/agents/parser/model/roberta_fold_1/checkpoint-82304"
+        self.parser = AutoModelForSequenceClassification.from_pretrained(self.checkpoint, num_labels=12)
+        self.tokenizer = AutoTokenizer.from_pretrained(self.checkpoint)
+
         # predictor modules のセットアップ
         self.state_predictor = dspy.ChainOfThought(NegotiationState)
         self.response_predictor = dspy.ChainOfThought(NegotiationResponse)
@@ -138,7 +149,7 @@ class BaseAgent:
         # すべてのモジュールで提供された言語モデルを使用するように DSPy を構成する
         dspy.settings.configure(lm=lm)
 
-    def update_state(self, message: Dict[str, str]) -> Dict:
+    def update_state(self, message: Dict[str, str], partner_data: Dict[str, str]=None) -> Dict:
         """
         LLM extraction を使用して交渉状態を更新する
         StateExtractor を使用して, メッセージから構造化された情報を取得する
@@ -148,6 +159,13 @@ class BaseAgent:
         """
         if not isinstance(message, dict) or 'role' not in message or 'content' not in message:
             raise ValueError("Invalid message format")
+        
+        # パートナーのデータも履歴に追加する (2025/9/5追加)
+        print("################: ", partner_data)
+        if partner_data is not None:
+            self.conversation_history.append(partner_data)
+            self.price_history.append(partner_data['price'])
+            self.roles_sequence.append(partner_data['role'])
 
         # LLM を使用して構造化された情報を抽出する
         extraction = self.state_extractor(
@@ -175,10 +193,29 @@ class BaseAgent:
 
         message.update({
             "price": extraction.extracted_price,
-            "status": extraction.detected_action,
+            "intent": extraction.detected_action,
         })
 
         return message
+    
+    def parse_partner_dialogue(self, partner_data):
+        """パートナーの発言を分析する"""
+        parser = self.parser.to(self.device)
+        with torch.no_grad():
+            parser.eval()
+            pre_text = self.conversation_history[-1] if self.conversation_history else "[PAD]"
+
+            inputs = self.tokenizer(pre_text, partner_data['content'], max_length=512, truncation=True, return_tensors="pt")
+            inputs = {key: tensor.to(self.device) for key, tensor in inputs.items()}
+            outputs = parser(**inputs)
+
+            logits = outputs.logits # ロジットの取得
+            probabilities = softmax(logits, dim=1) # ロジットをソフトマックス関数で確率に変換
+            predicted_class = torch.argmax(probabilities, dim=1).item() # 確率が最も高いものを推定ラベルとして決定
+            predicted_class = parser.config.id2label[predicted_class] # ラベル番号をダイアログアクトに変換
+
+        self.num_turns += 1 # ターンを一つ進める
+
 
     def _get_prediction_context(self) -> Dict:
         """予測の context を取得する"""
@@ -284,7 +321,7 @@ class BaseAgent:
         )
         
         # strategy-specific guidance を追加する
-        prompt += f"\n\nYour negotiation approach: {self.strategy['initial_approach']}"
+        prompt += f"\nYour negotiation approach: {self.strategy['initial_approach']}"
         prompt += f"\nCommunication style: {self.strategy['communication_style']}"
         prompt += f"\nCategory context: {self.category_context['market_dynamics']}"
         
@@ -296,13 +333,15 @@ class BaseAgent:
 
         return context
 
-    def step(self) -> Dict[str, str]:
+    def step(self, partner_data) -> Dict[str, str]:
         """
         交渉ステップを実行する: つまり行動を予測し, 応答を生成する
 
         Returns:
             応答メッセージのコンテンツと役割を含む辞書
         """
+        #if partner_data is not None:
+            #parse_partner_dialogue(partner_data)
 
         # 次の action を予測する
         prediction = self.predict_action_maneger()
@@ -313,7 +352,7 @@ class BaseAgent:
             prediction["action"], 
             prediction["counter_price"]
         )
-        print("context: ", context)##################
+        #print("context: ", context)##################
         response_prediction = self.response_predictor(**context)
         #self.lm.inspect_history(n=1) ###############################
 
@@ -324,7 +363,19 @@ class BaseAgent:
         }
 
         # 自分自身の状態を更新する
-        message = self.update_state(message)
+        print("partner_data: ", partner_data)
+        message = self.update_state(message, partner_data)
+
+        print(f"target_price: {self.target_price}")
+        print(f"is_buyer: {self.is_buyer}")
+        print(f"role: {self.role}")
+        print(f"convesation_history: {self.conversation_history}")
+        print(f"price_history: {self.price_history}")
+        print(f"roles_sequence: {self.roles_sequence}")
+        print(f"last_action: {self.last_action}")
+        print(f"current_price: {self.current_price}")
+        print(f"num_turns: {self.num_turns}")
+
 
         return message
 

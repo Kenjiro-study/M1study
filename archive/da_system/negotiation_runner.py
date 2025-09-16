@@ -199,13 +199,14 @@ class NegotiationRunner:
 
             # タイムアウトでターンを実行する
             async with asyncio.timeout(timeout):
-                response = current_agent.step() # 2025/7/18 await current_agent.step()のawait削除
+                partner_data = metrics.messages[-1] if metrics.messages else None
+                response = current_agent.step(partner_data) # 2025/7/18 await current_agent.step()のawait削除
 
                 # 2025/7/18 交渉の流れを見るためのprint追加 ##########################
-                if current_agent.is_buyer == True:
-                    print("buyer: ", response["content"])
-                else:
-                    print("seller: ", response["content"])
+                #if current_agent.is_buyer == True:
+                    #print("buyer: ", response["content"])
+                #else:
+                    #print("seller: ", response["content"])
 
 
                 # message の構造を検証する
@@ -214,7 +215,8 @@ class NegotiationRunner:
 
                 # 必須となる fields を確認する
                 response.setdefault('price', None)
-                response.setdefault('status', 'counter')
+                response.setdefault('intent', 'counter')
+                print(f"response: {response}")
 
                 # 価格の変動を検証する
                 #if response['price'] is not None:
@@ -224,18 +226,19 @@ class NegotiationRunner:
                         #metrics=metrics
                     #)
                     #if not valid:
-                        #response['status'] = 'reject'
+                        #response['intent'] = 'reject'
                         #logger.warning(f"Invalid price movement: {response}")
 
             # metrics を更新する
+            print(f"metrics.messages: {metrics.messages}")
             metrics.turns_taken += 1
             metrics.messages.append(response)
 
             # handle completion
-            if response['status'] in ['accept', 'reject']:
+            if response['intent'] in ['accept', 'reject']:
                 metrics.end_time = datetime.now()
                 metrics.final_price = (
-                    response['price'] if response['status'] == 'accept' 
+                    response['price'] if response['intent'] == 'accept' 
                     else None
                 )
                 return False

@@ -1,0 +1,288 @@
+text,meta_text,compiled,nomal
+can you sell it to me for $5 ? ,init-price,5.0,5.0
+"still , can i buy it for $5 ? i'm on a tight budge ",insist,5.0,5.0
+i think the lowest i would want to go is 8 . ,counter-price,8.0,8.0
+how about $6 and i pick it up myself ? it'll save you shipping to me . ,counter-price,6.0,6.0
+"7 , and we have a deal . ",counter-price,7.0,7.0
+would you accept 100 for the board ? ,init-price,100.0,100.0
+if i picked it up at your location would you accpet 120 ? ,counter-price,120.0,120.0
+make it 150 and we got a deal . ,counter-price,150.0,150.0
+"i could do 145 , if you can gurantee the painting on the front of the board is not scratched up . ",counter-price,145.0,145.0
+im on a budget so i could do 1850 ,init-price,1850.0,1850.0
+how about $1900 and i'll wave the deposit . ,counter-price,1900.0,1900.0
+i see the list price is 585 . i can give you 400 for it and can pick it up today . ,init-price,400.0,400.0
+"well as i said it has nearly no wear and was in a non-smoking home , i can go as low as 480 on it ",counter-price,480.0,480.0
+"hi , $15 sound good ? ",init-price,15.0,15.0
+"alright , $14 ? ",counter-price,14.0,14.0
+actually i was looking for something closer to $10 . ,counter-price,,10.0
+how about you give it to me for 8000 ,init-price,8000.0,8000.0
+i realy dont need it but i can pay you 8200 if you let it go ,counter-price,8200.0,8200.0
+i can go down to 14k but i can't knock off 6k ,counter-price,14000.0,14.0
+"oh man i cant afford that , i need to buy food for my pigs and farm and send my child to private school , can you do 13k ? ",counter-price,13000.0,13.0
+"hello , i offer $500 for this studio . ",init-price,500.0,500.0
+"hi , think i could get it for $20000 ? ",init-price,20000.0,20000.0
+"okay , $22000 ? ",counter-price,22000.0,22000.0
+$24000 is my final offer ,counter-price,24000.0,24000.0
+sounds pretty nice . would you take $705 for it ? ,init-price,705.0,705.0
+i mean it is still in it's original packaging and the warranty is included . i can do 760 . ,counter-price,760.0,7.6
+warranty sounds useful with kids and a dog at home . how about $750 and we'll finish this deal now ? ,counter-price,750.0,750.0
+would you take $50 ? ,init-price,50.0,50.0
+how about 120 ,counter-price,120.0,120.0
+well 90 is lowest i will go ,counter-price,90.0,90.0
+could you do 75 cash ? that's all i've got right now ,counter-price,75.0,75.0
+"i would like to offer you 65 . 00 , i know their worth and that seems of correct value to me . ",init-price,65.0,65.0
+"this is true , there are larger ones for same price , so i feel my price is fair . i would also pick up the item at your convience . ",insist,,
+that's interesting . i've seen ones my size sell for $85 in some places ! picking up the item is a good offer too ! ,counter-price,,85.0
+"really ? i have seen them cheaper then that . how about i pick up the item anytime you are free , and i pay 69 for it ? ",counter-price,69.0,69.0
+is it possible for you to come up to $71 ? ,counter-price,71.0,71.0
+since i am picking it up i would like to stay at the 69 . ,insist,69.0,69.0
+"i am sure i will , it seems great , i also think you will like not having to leave your home or go out of your way . i would love to buy it , i could even meet you in the middle at 70 . 00 . ",counter-price,70.0,70.0
+great ! i have it listed for $220 but am willing to negotiate . ,init-price,220.0,220.0
+would you take 120 ? ,counter-price,120.0,120.0
+it's new so i think $150 is a good deal for both of us . ,counter-price,150.0,150.0
+would you accept $132 if i pick it up at your location ? ,counter-price,132.0,132.0
+the highest i can offer is around 100 dollars . is this too low ? ,init-price,100.0,100.0
+"i just saw your ad , i'd be willing to offer $65 ",init-price,65.0,65.0
+$65 ,insist,65.0,65.0
+how about 67 ? ,counter-price,67.0,67.0
+hi are you willing to go down to $2000 ? ,init-price,2000.0,2000.0
+i'd like to get closer to my asking price . how about 2400 ? ,counter-price,2400.0,2400.0
+i would be comfortable going $2300 . ,counter-price,2300.0,2300.0
+"looks like this was made for me , i like the style . how doe $510 for it sound ? i would like to pay lower , but sense it's a classic and rare , i thought this would be a fair price . ",init-price,510.0,510.0
+hmmm any chance you can go to $550 ? ,counter-price,550.0,550.0
+i was looking for something in the 1500-1600 range ,init-price,,1500.0
+"that is really unreasonable considering all the immenities and other going rates , you would need to come up to at least 3000 ",counter-price,3000.0,3000.0
+it may be then . . . the absolute lowest i will go is 2700 . that is my final offer . ,counter-price,2700.0,2700.0
+"ok , i think the most i could spend on this is 2000 - we are a ways apart ",counter-price,2000.0,2000.0
+"i just saw your ad for the adapters , would you take $10 ? ",init-price,10.0,10.0
+i can accept $15 ,counter-price,15.0,15.0
+"i don't want to pay that much , i see there are a few adapters in there that are obsolete . wold you take $12 ? ",counter-price,12.0,12.0
+the price is $55 ,init-price,55.0,55.0
+i can pay $41 . ,counter-price,41.0,41.0
+okay i can only afford $48 that's the last i can pay ,counter-price,48.0,
+make it $50 and we have a deal . ,counter-price,50.0,50.0
+125 a bit pricey ,init-price,,
+"great ! would you take $10 , 000 ? ",init-price,10000.0,10000.0
+we could meet in the middle and say 13 000 ? ,counter-price,13000.0,13000.0
+"13 , 000 is fair , however i can only afford paying 12 , 500 ",counter-price,12500.0,12.5
+sure . its definitely a great product . i would be willing to take $1800 ,counter-price,1800.0,1800.0
+"i'm only asking $1400 , that is really cheap for the area ",init-price,1400.0,1400.0
+but how about 1300 instead ? ,counter-price,1300.0,1300.0
+"oops , i ment $1400 , how about we meet in the middle at $1350 ? ",counter-price,1350.0,1350.0
+"1325 , and i'll accept ",counter-price,1325.0,1325.0
+how about $1337 . 50 ,counter-price,1337.5,1337.5
+i think $125 is fair and a good deal for both of us . ,init-price,125.0,125.0
+i am willing to accept $140 ,counter-price,140.0,140.0
+i only have $40 in cash but i would like to buy it . ,init-price,40.0,40.0
+"hi , just saw your ad , will you take $100 ? ",init-price,100.0,100.0
+"hi , the price for this bike is $200 . ",counter-price,200.0,200.0
+"so you are telling me it is used , i come up some , how about $110 and i'll come pick it up . ",counter-price,110.0,110.0
+it is taking up space so i am selling it today . i have an offer for $160 and he can pick it up within the hour ,counter-price,160.0,160.0
+"i am really poor , and have no other transportation . i can scounge up $115 , and i can through in a pan of fresh brownies ",counter-price,115.0,115.0
+"the shimano gears alone cost me an extra $50 to add . i paid over $500 for this bike . how about this , since you see like you are a great person , just starting out financially and i remember being there . price is $150 and you give me $100 now and $50 in two weeks , we sign and agreement and you pick it up today ",counter-price,150.0,150.0
+"i lost my job , so i can't guarentee anything next week , i think i can get another $5 from my mom , so i can give you $120 total . ",counter-price,120.0,120.0
+"the wheel could be better , would you accept 520 ? ",init-price,520.0,520.0
+200 dollars ,init-price,200.0,200.0
+hi there - i am only asking 150 for this item . ,counter-price,150.0,150.0
+i'm willing to pay $22 . ,init-price,22.0,22.0
+"that is really too low for such a high quality item , i could do 30 . ? ",counter-price,30.0,30.0
+"if it is in good condition , i could offer $25 . ",counter-price,25.0,25.0
+so excellent quality and offers maximum protection . i would be willing to drop down and meet in the middle at 28 dollars . ,counter-price,28.0,28.0
+i have seen some plans that come with this phone for 650 . would you take that for this phone ? ,init-price,,650.0
+iwould be willing to let it go for 725 . ,counter-price,725.0,725.0
+i may be able to come up to 700 . would that be enough to take it off your hands ? ,counter-price,700.0,700.0
+"personally , i'd like to live near work , but the wife you know . . . i got a place lined up for 2 , 000 a month , so there's a very wide gap here between what you are asking . ",init-price,2000.0,2000.0
+"sounds really great , but with the extra commute time , i think we may be too far apart . but . . . need to keep the wife happy . how about $2200 ? ",counter-price,2200.0,2200.0
+my absolute highest is 114 . . . is ther enayway that works ? ,counter-price,114.0,114.0
+i got the battery for $180 . ,counter-price,,180.0
+120 would over budget but i would think reaosnable . . . ,counter-price,120.0,120.0
+all i have is $3800 . would you be willing to sell at that price ? i really would appreciate it ! ,init-price,3800.0,3800.0
+i could accept $3900 because its in a very mint condition and its something worth it ,counter-price,3900.0,3.9
+how about $3850 ? meet me in the middle ? ,counter-price,3850.0,3850.0
+"i used to have one just like it back in high school , would you take $1800 ? ",init-price,1800.0,1800.0
+i am hoping to get 4000 or higher ,counter-price,4000.0,4000.0
+cool . i see the price is $49 but its too pricey for me . ,init-price,,
+"for me too , it would cost me $50 to have someone come take it and throw it away ",counter-price,,50.0
+well i can only pay $45 because that's what i can afford honestly . ,counter-price,2150.0,45.0
+"ok yea 8900 is a steal , they go for 30k brand new ",init-price,8900.0,8900.0
+"i wouldn't normally do this , but because we are friends i will give you my final offer of 8188 ",counter-price,8188.0,8188.0
+i've seen them sell around $50 individually would you be willing to take $200 for the set ? ,init-price,200.0,200.0
+originally cost far more than i am asking . i am willing to go to 380 on the price drop . ,counter-price,380.0,380.0
+that is pretty similar to the cost of new would you be willing to take $225 ? ,counter-price,225.0,225.0
+"well i am willing to come down , but only to 360 as i can get a better offer for everything as a set . ",counter-price,360.0,360.0
+"i really do need the cubicles but i already have the chairs and cabinets , so you could probably sell them and get the rest of your money how about i offer $235 ? ",counter-price,235.0,235.0
+"no i am sorry , i know i could much better with what i have to offer . either 360 or nothing . . ",insist,,360.0
+sure . i am willing to lower the price a little bit . 180 ,init-price,180.0,180.0
+hello ! i have listed the price of the bike at $3450 ,init-price,3450.0,3.45
+hi . i'm wondering if you would be willing to accept a price of around $2000 instead . i'd be willing to pick it up from wherever you have it now . ,counter-price,2000.0,2000.0
+"i'd be willing to knock it down to 3000 , and throw in a bikelock with a custom helmet ",counter-price,3000.0,3000.0
+"i see you've written ""brand new"" in the description , and i'd be willing to go up to $2500 if the tires are new and the frame and chain are in good condition . ",counter-price,2500.0,2500.0
+"well , i will throw in free delivery and a 3 month warranty for the $100 . ",init-price,100.0,100.0
+i can only pay $76 for it ,counter-price,76.0,76.0
+that is a really big difference ! i will also throw in a helmet and bring the price down to $95 . ,counter-price,95.0,95.0
+i would appreciate if you waive the other options as i just want the bike for my kid . can we work $80 for it ? ,counter-price,80.0,80.0
+can we split the difference and agree on 87 . 50 ? ,counter-price,87.5,87.5
+i an offer you a 10% discount - putting the discounted price at $2025 ! ,init-price,2025.0,2025.0
+i have pay $1500 that's what i can do . ,counter-price,1500.0,1500.0
+"if you volunteer working on our pool cleaing staff 10 hours/week , i can come down an additional 500/month , so 1525 ! ",counter-price,1525.0,1525.0
+so you'd be willing to take $20 ? ,init-price,20.0,20.0
+"hi , saw your ad , i't a little older but mine just blew up , would you take $175 ? ",init-price,175.0,175.0
+"hey , i really was looking to get 200 , but since you're the first to ask , i could sell it to you for 190 ",counter-price,190.0,190.0
+"hmm , would you do $184 (that's all i have on me) and i will come pick it up in an hour ? ",counter-price,184.0,184.0
+i think $200 sounds responable ,init-price,200.0,200.0
+what about $300 ,counter-price,300.0,300.0
+i am asking 240$ witht he shipping included . ,init-price,240.0,240.0
+can you do $220 ? ,counter-price,220.0,220.0
+whoah ! i saw those in a movie once ! will you take 350 for it ? ,init-price,350.0,350.0
+bit low . . . . . meet in middle at 380 ? :) ,counter-price,380.0,380.0
+360 and i'll throw in some 3d-printed fidget spinners ! ,counter-price,360.0,360.0
+"375 , and i'll throw in a sony walkman ",counter-price,375.0,375.0
+368 and i'll take your walkman and throw in some barry manilow vinyl records ! ,counter-price,368.0,368.0
+i need to get $350 for it . ,init-price,350.0,350.0
+wow the ad says its for $300 ? ,counter-price,300.0,300.0
+i am willing to pay $170 ,counter-price,170.0,170.0
+"okay , so how about $200 that's pretty much what i can do right now taking my budget into consideration ",counter-price,200.0,200.0
+"i have a standing offer right now for $290 but they can't pick it up untill saturday , if you can match that it's yours ",counter-price,290.0,290.0
+for $290 ? ,insist,290.0,290.0
+i am willing to sell it for $9000 ,init-price,9000.0,9000.0
+"i have some saved but not 9000 and realy want to buy it , would you do 8300 ",counter-price,8300.0,8300.0
+i could do $8500 since its a bmw ! ,counter-price,8500.0,8500.0
+i think $50 is a pretty great deal for a plasma tv . ,init-price,50.0,50.0
+"i was thinking 30 , since it doesnt have the hdmi or tuner and i will have to get those also . . ",counter-price,30.0,30.0
+$35 and we have a deal . ,counter-price,35.0,35.0
+oh good . i hate smoke . i am on a budget any chance you could do it for $3200 ? ,init-price,3200.0,3200.0
+3500,init-price,3500.0,3500.0
+how about 3000 ,counter-price,3000.0,3000.0
+"i saw your ad for the appartment , i also noticed it was in elmwood , kind of a sketchy neighborhood . would you take $2500 ? ",init-price,2500.0,2500.0
+"i just saw on the news last night that an elderly woman got mugged in elmwood , so theres that . i can offer you $2550 ",counter-price,2550.0,2550.0
+i am wanting much closer $3600 . i could do it for 3200 only because i would like to take care of it quickly . ,counter-price,3200.0,3200.0
+"can we meet closer to the middel , how is $2700 ? ",counter-price,2700.0,2700.0
+i would be willing to come down to 3000 . ,counter-price,3000.0,3000.0
+"for a royce union ? no , these go for $1200 brand new , i'm only selling in because i have medical bills for my daughter i need to pay . ",init-price,,
+"nah , but i'll offer you 70$ ",counter-price,70.0,70.0
+"no , i really need the $120 , her last doctor visit was that much alone . ",counter-price,120.0,120.0
+"u should get some better insurance , and sell me it for $80 , cuz of that tip i just gave u ",counter-price,,80.0
+"that is with really good insurance , it's just obama care sucks . lowest i can go is $115 ",counter-price,115.0,115.0
+man u drivin=g such a hard bargani . i'l give u 90 ,counter-price,90.0,90.0
+"i'm very interested in the smart things hub you have listed , but i'd like to negotiate the price . $60 is a bit too steep . ",init-price,,5.0
+"i'm seeing it on other websites for $40 , but the local pickup is good for me rather than waiting for shipping . i'd be willing to go to $45 . ",counter-price,45.0,45.0
+what about meeting in the middle at 50 ? ,counter-price,50.0,50.0
+i am asking $10 for it ! ,init-price,10.0,10.0
+i am on a budget i was hoping to pay $7 . ,counter-price,7.0,7.0
+well it is brand ! how about $8 . ,counter-price,8.0,8.0
+i was like i give u $20 ,init-price,20.0,20.0
+"im very , very interesting in purchasing , for some bird watching *wink wink* . i'l lgive you 150 ",counter-price,150.0,150.0
+that's less than half of what they're listed at . i'm willing to go to $300 . ,counter-price,300.0,300.0
+can you help me out to like 200 at least ? ,counter-price,200.0,200.0
+"i'm willing to meet in the middle at $250 , but no lower . that's more than $100 off the list price . ",counter-price,250.0,250.0
+"you gotta work with me here , i'll go to 220 . that's a good deal for u ",counter-price,220.0,220.0
+"ok ok ok , i'll give u 225 ",counter-price,225.0,225.0
+i'm really not interested in going lower than $250 . i'll add a 2g sd card in the deal if you'll come up to $250 . ,insist,250.0,250.0
+would you take $25 ? ,init-price,25.0,25.0
+"hi , my condolences but the lowest i can do is 35 ",counter-price,35.0,35.0
+i understand but it is worth $40 i can do 33 ,counter-price,33.0,40.0
+"i have $30 on me right now , and i could be there in under an hour to pick it up ? how about it ? ",counter-price,30.0,30.0
+would you be willing to accept $150 for it ? ,init-price,150.0,150.0
+that's too low i am giving it for $240 ,counter-price,240.0,240.0
+how about $180 ? i need it for my son . he just got a new job and he needs it to get to work . ,counter-price,180.0,180.0
+i can accept it for $200 ,counter-price,200.0,200.0
+woudl you be willing to take 360 ,init-price,360.0,360.0
+the max i can do is $400 . ,counter-price,400.0,400.0
+"i can go down to $575 , but that is my bottom dollar ",counter-price,575.0,575.0
+would you do 26 if i come and move it myself ,init-price,26.0,26.0
+"i can meet you somewhere with it , i don't really want u to come over . that's kinda scary . for meeting u i'll go to 33 ",counter-price,33.0,33.0
+since im meeting you and have to get a truck can you do 28 ,counter-price,28.0,28.0
+"i'll tell you what buddy , i'll go to 29 just for you , cuz u seem so desperate ",counter-price,29.0,29.0
+i can't really go that much lower but i'll sell it to you for 45 ,init-price,45.0,45.0
+i can do 39 please because that's what i can afford at the moment ,counter-price,39.0,39.0
+okay 40 should still work for me ? we've got a deal ? ,counter-price,40.0,40.0
+"i see your add for the shelf , i'm getting it for my daughter for her birthday , i am really short on cash , could you take $25 ? ",init-price,25.0,25.0
+"i am sorry that is low , i ma lookign to get 40 ",counter-price,40.0,40.0
+"i am really spreadding myself thin , but i can do $28 . 50 ",counter-price,28.5,28.5
+"my daughter really wants this , but i have been out of work for several months and can't afford much . would you take $30 ? that is all i have on me , and i can pick it up today . ",counter-price,30.0,30.0
+its used so that is why im selling it for a really good deal of 95 ,init-price,95.0,95.0
+i can afford to pay 72 for it . that's what i got since its used i would really appreciate if we could work that out ,counter-price,72.0,72.0
+okay how about $75 ? ,counter-price,75.0,75.0
+90,counter-price,90.0,90.0
+okay how about 85$ i loved this piece and i would really like to get it ! ,counter-price,85.0,85.0
+that is great ! i am on a budget and was hoping to pay $1100 . ,init-price,1100.0,1100.0
+its a great located place and i can accept nothing lower than $1700 ,counter-price,1700.0,1700.0
+"it kind of looks like ashley , but anyway , i have a pretty tight budget , would you be willing to take$900 ? ",init-price,900.0,900.0
+"im sorry im on a budget as well and 900 is entirely too low , i can do 1600 ",counter-price,1600.0,1600.0
+"that's too much for me , i see in the picture there are quite a few scratches , it would cost about $500 to have them fixed and restained . how about $950 ? ",counter-price,950.0,950.0
+the scratches are at the bottom and i can make sure that it is gone for you 1550 ,counter-price,1550.0,1550.0
+what ablut that huge scratch on the desk top . it really takes away from the value . best i can do is $1000 ,counter-price,1000.0,1000.0
+that is not a scratch 1400 i cannot go lower take it or leave it ,counter-price,1400.0,1400.0
+"final offer is $1100 , it will never have full value because of the scratches , and refinishing . ",counter-price,1100.0,1100.0
+i told you i was going to fix the scratches so final offer 1400 ,insist,1400.0,1400.0
+sorry can't go above $1100 ,insist,1100.0,
+"and i cant go lower than 1400 this is quality and i have already taken 350 off as a favor , ",insist,1400.0,1400.0
+"would you take 2 , 400 ? it has a lot of miles on it . ",init-price,2400.0,2.4
+i can accept $3000 because its almost a new car and in an extremely excellent condition ,counter-price,3000.0,3000.0
+"good . do you have any questions ? i am asking $1900 , which is a great deal on this place . ",init-price,1900.0,1900.0
+well i can come down slightly to $1750 . or another option for the full $1900 is it coming furnished . ,counter-price,1750.0,1750.0
+i can offer $87 since you want to get rid of it and its two years old ,init-price,87.0,87.0
+i would like to purchase for 41 ,init-price,41.0,41.0
+it is brand new and a good deal at $175 . ,init-price,175.0,175.0
+i can pay $133 would that be fine ? ,counter-price,133.0,133.0
+is there a way we can meet in the middle . how about $150 ? ,counter-price,150.0,150.0
+hi yes it is i am selling it for 39 ,init-price,39.0,39.0
+"yes . but since it is from the 90's , the most i can pay is $23 . ",counter-price,23.0,23.0
+alright . i am willing to pay $125 for it to buy it now . ,init-price,125.0,125.0
+"i can't go that low . i was looking for $320 , but i'd be willing to lower my price to $280 ",counter-price,300.0,280.0
+"how about this , i'll drop the price to $200 . it's worth that much and uh , i can throw in a backup charger . ",counter-price,200.0,200.0
+i'll take it with the backup charger for $185 . ,counter-price,185.0,185.0
+you're going to miss out on a great phone for the price . i could go $190 but that's as low as i'll go . ,counter-price,190.0,190.0
+hello i can give you 237 for it ,init-price,237.0,237.0
+the asking price is $395 . i'd be willing to go down to $330 ,counter-price,395.0,395.0
+ok how about 300 ? ,counter-price,300.0,300.0
+hello . i am looking to sell this car for 3600 ,init-price,3600.0,3600.0
+i would like to pay 3250 ,counter-price,3250.0,3250.0
+3300 is the highest i will go the car is only worth 3500 blue book in perfect condition ,counter-price,3300.0,3300.0
+could you meet at 3400 ? i have other people interested but at 3500 ,counter-price,3400.0,3400.0
+i would like to buy at $140 ,init-price,140.0,140.0
+"ehh , i appreciate the offer but i was thinking closer to at least $210 ",counter-price,210.0,210.0
+actually i'm looking something within $150 ,counter-price,150.0,150.0
+"if you can meet me at $160 , i'll throw in a free spare tire and a trek frame ! ",counter-price,160.0,160.0
+oh so nice of you . can u give me at $155 ,counter-price,155.0,155.0
+hello can i give you 9 dollars ? i really want to have this . ,init-price,9.0,9.0
+i have someone who wants it for 10 but is coming next weekend ,counter-price,,
+could you do it for 10 ? ,insist,10.0,10.0
+i would need bus money to get there . how about 9 . 50 ? ,counter-price,9.5,9.5
+i'm asking $40 and have come down a bit to that ,init-price,40.0,40.0
+alright the offer is for $350 ,init-price,350.0,350.0
+i know it is big difference but i was hoping to pay about $210 . ,counter-price,210.0,210.0
+"10 , 900 still runs really well ",init-price,10900.0,10.9
+"okay . how about 7 , 500 ? ",counter-price,7500.0,7500.0
+"the value of the car is worth 12 , 000 and im selling only for 10 , 900 ",insist,10900.0,10.9
+"i can go as high as 8 , 500 . final offer ",counter-price,8500.0,8.5
+"how about 10 , 000 and i will fix the dent for you ",counter-price,10000.0,10.0
+"if you fix the dent , we can do 9 , 500 . sound good ? ",counter-price,9500.0,9.5
+i would love to have the phone . i can give you 82 for it ,init-price,82.0,82.0
+i'd feel a bit better if you could do 85 . is that possible ? it's unlocked and in good condition . ,counter-price,85.0,85.0
+well that does not look hopeful . i was hoping to get a great deal somewhere around 16000 . ,init-price,,16000.0
+"i think the max i can manage is 23 , 000 . ",counter-price,23000.0,23000.0
+i'm thinking around 715 per month ,init-price,715.0,715.0
+it's a car that i'm selling for 4400 ,counter-price,4400.0,4400.0
+since it's used would you be willing to negotiated a little lower ? maybe 6 ? ,init-price,6.0,6.0
+"hmm . how about $9 , then ? ",counter-price,9.0,9.0
+"hello , i am almost giving this away at only 3000 . its very nice . ",init-price,3000.0,3000.0
+you sure could . and i will throw in a raido all for 3000 ,insist,3000.0,3000.0
+"can you do $2 , 500 ? ",counter-price,2500.0,2500.0
+i will diliver it to you for 2750 ,counter-price,2750.0,2750.0
+i like the car . can you come down to 2800 ? ,init-price,2800.0,2800.0
+i can do 3000 ,counter-price,3000.0,3000.0
+so are you interested ? it is $2250 . ,init-price,2250.0,2250.0
+ill give you 1900 ,counter-price,1900.0,1900.0
+"i think meeting somewhere in the middle may work . let's meet at 2100 , does that work ? ",counter-price,2100.0,2100.0
+"just a little lower and you got me , how 2020 ",counter-price,2020.0,2020.0
+2050,counter-price,2050.0,2050.0
+hi i would like to purchase this property for 1710 ,init-price,1710.0,1710.0
+if you come and see it you will love it ! i can give it to you for 2000 ,counter-price,2000.0,2000.0
+im on a budget is it possible you can go down a little more how about 1800 ,counter-price,1800.0,1800.0
+i can offer free heat and free wifi for 1900 . you will be saving at least 200 a month ,counter-price,1900.0,1900.0
+i have wifi on my phone can you do 1850 ,counter-price,1850.0,1850.0
+"that's hard to believe , but i'm willing to work with you anyway cuz my boy cleans matressp rofessionally , and i 'm gonna have to clean this one hard i can tell . i'll give you 105 ",init-price,105.0,105.0
+"if you can come up closer to the $225 , that is much better . don't forget it is not only the mattress you are getting for that . ",counter-price,225.0,225.0
+"i can come up a little bit but not much , you see my child is sick af and i got her medical bills to keep her alive . i'll give you 110 ",counter-price,110.0,110.0
+well i'm so sorry about your situation i guess i can go to 150 ,counter-price,150.0,150.0

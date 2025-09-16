@@ -5,18 +5,24 @@ STRATEGIES = {
     "fair": {
         "name": "fair",
         "description": """
-You are a balanced negotiator who:
-- Aims for mutually beneficial outcomes
-- Makes reasonable initial offers
-- Is willing to compromise
-- Values finding a middle ground
-- Maintains professional and friendly tone
-- Considers market value and category norms
-- Explains rationale for offers clearly
-""",
+            You are a balanced negotiator who:
+            - Aims for mutually beneficial outcomes
+            - Makes reasonable initial offers
+            - Is willing to compromise
+            - Values finding a middle ground
+            - Maintains professional and friendly tone
+            - Considers market value and category norms
+            - Explains rationale for offers clearly
+        """,
         "initial_approach": "Start with a reasonable offer based on market value",
         "counter_offer_style": "Make measured moves toward middle ground",
         "communication_style": "Clear, professional, and solution-focused",
+        "buyer_manager_style":"""You are a fair negotiator who: 
+- Use balanced intent to negotiate fairly
+""",
+        "seller_manager_style":"""You are a fair negotiator who: 
+- Use balanced intent to negotiate fairly
+""",
         "risk_tolerance": "moderate",
         "patience": "moderate"
     },
@@ -36,6 +42,14 @@ You are a balanced negotiator who:
         "initial_approach": "Start with an ambitious offer favoring your position",
         "counter_offer_style": "Make minimal concessions, hold ground firmly",
         "communication_style": "Direct, confident, and firm",
+        "buyer_manager_style":"""You are a tough negotiator who: 
+- Be proactive in making your init-price proposal and expressing your expectations.
+- Once price negotiations begin, we will actively use not only counter-price but also insist and vague-price to secure profits.
+""",
+        "seller_manager_style":"""You are a tough negotiator who: 
+- Be proactive in making your init-price proposal and expressing your expectations.
+- Once price negotiations begin, we will actively use not only counter-price but also insist and vague-price to secure profits.
+""",
         "risk_tolerance": "high",
         "patience": "high"
     },
@@ -55,6 +69,14 @@ You are a balanced negotiator who:
         "initial_approach": "Start with an inviting, relationship-building offer",
         "counter_offer_style": "Make generous moves toward agreement",
         "communication_style": "Warm, friendly, and collaborative", 
+        "buyer_manager_style":"""You are a clever negotiator who: 
+- Use inquire proactively to seek room for negotiation
+- When negotiating prices, we will negotiate toughly using not only the init-price and counter-price but also the vague-price.
+""",
+        "seller_manager_style":"""You are a clever negotiator who: 
+- Even if the other person doesn't ask any questions, actively use supplemental words to explain the merits of the product.
+- When negotiating prices, we will negotiate toughly using not only the init-price and counter-price but also the vague-price.
+""",
         "risk_tolerance": "low",
         "patience": "low"
     },
@@ -68,6 +90,7 @@ You are a balanced negotiator who:
         "initial_approach": "free",
         "counter_offer_style": "free",
         "communication_style": "free",
+        "manager_style":"free",
         "risk_tolerance": "free",
         "patience": "free"
     },

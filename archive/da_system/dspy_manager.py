@@ -114,6 +114,14 @@ class DSPyManager:
         self.lm_cache[context_key] = lm
 
         return lm
+    
+    def get_extractor_lm(self):
+        lm = dspy.LM(
+            model="ollama/llama3.1",
+            provider="ollama",
+            cache=True,
+        )
+        return
 
     async def run_parallel(self, tasks: list) -> list:
         """複数の LM タスクを並列に実行する"""
@@ -175,18 +183,18 @@ def test_dspy_manager():
     assert lm is not None
 
     # strategy-specific configuration のテスト
-    lm_aggressive = manager.get_lm(
+    lm_utility = manager.get_lm(
         "llama-3.1-8b",
-        strategy_name="aggressive",
+        strategy_name="utility",
         role="buyer"
     )
-    assert lm_aggressive is not None
+    assert lm_utility is not None
 
     # negotiation pair configuration のテスト
     buyer_lm, seller_lm = manager.configure_negotiation(
         "llama-3.1-8b",
         "llama-3.1-8b",
-        "cooperative",
+        "length",
         "fair"
     )
     assert buyer_lm is not None

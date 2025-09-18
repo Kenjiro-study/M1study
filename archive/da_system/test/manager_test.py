@@ -6,7 +6,7 @@ from dspy.evaluate import Evaluate
 from ..strategies import STRATEGIES, CATEGORY_CONTEXT
 from ..agents.buyer import BuyerAgent
 
-class NegotiationIntentSignature(dspy.Signature):
+class NegotiationManager(dspy.Signature):
     """The agent in a price negotiation dialogue determines the next action to be taken by taking into account the other party's statements and their intentions.
 From the presented options, output only one intent label that is strategically most appropriate.
     # classification criteria (top priority)
@@ -64,13 +64,13 @@ def test_manager():
     )
 
     dspy.settings.configure(lm=lm)
-    manager = dspy.ChainOfThought(NegotiationIntentSignature)
+    manager = dspy.ChainOfThought(NegotiationManager)
 
     filepath = "archive/da_system/test/manager_val_data.json"
     val_data = load_examples_from_json(filepath)
     #strategy = STRATEGIES["fair"]
-    #strategy = STRATEGIES["aggressive"]
-    strategy = STRATEGIES["cooperative"]
+    #strategy = STRATEGIES["utility"]
+    strategy = STRATEGIES["length"]
 
     count = 0
 

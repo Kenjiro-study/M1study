@@ -27,8 +27,8 @@ STRATEGIES = {
         "patience": "moderate"
     },
 
-    "aggressive": {
-        "name": "aggressive", 
+    "utility": {
+        "name": "utility", 
         "description": """
             You are a tough negotiator who:
             - Prioritizes maximizing your own value
@@ -54,8 +54,8 @@ STRATEGIES = {
         "patience": "high"
     },
 
-    "cooperative": {
-        "name": "cooperative",
+    "length": {
+        "name": "length",
         "description": """
             You are a collaborative negotiator who:
             - Prioritizes reaching an agreement
@@ -141,6 +141,21 @@ CATEGORY_CONTEXT = {
         """,
         "negotiation_norms": "Complex negotiations with many factors to consider"
     }
+}
+
+# intentごとの説明
+INTENT_CONTEXT = {
+    "intro": "",
+    "inquire": "",
+    "inform": "",
+    "init-price": "",
+    "vague-prce": "",
+    "counter-price": "",
+    "insist": "",
+    "disagree": "",
+    "agree": "",
+    "supplemental": "",
+    "thanks": ""
 }
 
 

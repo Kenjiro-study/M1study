@@ -332,7 +332,7 @@ def test_metrics_collector():
         metrics=metrics,
         buyer_model='llama-3.1-8b',
         seller_model='llama-3.1-8b',
-        buyer_strategy='cooperative',
+        buyer_strategy='length',
         seller_strategy='fair',
         scenario_id='test_1',
         initial_price=200.0,

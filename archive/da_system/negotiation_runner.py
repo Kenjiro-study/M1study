@@ -7,6 +7,7 @@ from datetime import datetime
 from .agents.buyer import BuyerAgent
 from .agents.seller import SellerAgent
 from .agents.human import HumanAgent
+from .agents.extractor import PriceExtractor
 from .scenario_manager import NegotiationScenario
 from .dspy_manager import DSPyManager
 
@@ -73,18 +74,15 @@ class NegotiationRunner:
             f"Category: {scenario.category}\n" \
             f"List Price: {scenario.list_price}\n" \
             f"description: {scenario.description}\n")
- 
-
+     
+    # 交渉のために買い手エージェントと売り手エージェントを初期化する
     def _initialize_agents(self,config: NegotiationConfig):
-        """交渉のために買い手エージェントと売り手エージェントを初期化する"""
-
         if config.buyer_model == "human":
             seller_lm = self.dspy_manager.get_lm(
                 config.seller_model,
                 strategy_name=config.seller_strategy,
                 role='seller'
             )
-
             buyer = HumanAgent(
                 strategy_name=config.buyer_strategy,
                 target_price=config.scenario.buyer_target,
@@ -92,15 +90,15 @@ class NegotiationRunner:
                 is_buyer=True,
                 lm=seller_lm
             )
-
             seller = SellerAgent(
                 strategy_name=config.seller_strategy,
                 target_price=config.scenario.seller_target,
+                list_price=config.scenario.list_price,
                 category=config.scenario.category,
                 initial_price=config.scenario.list_price,
-                min_price=config.scenario.seller_target * 0.9, # 10% below target
                 lm=seller_lm
             )
+            seller.min_price_select()
 
         elif config.seller_model == "human":
             buyer_lm = self.dspy_manager.get_lm(
@@ -108,15 +106,13 @@ class NegotiationRunner:
                 strategy_name=config.buyer_strategy,
                 role='buyer'
             )
-
             buyer = BuyerAgent(
                 strategy_name=config.buyer_strategy,
                 target_price=config.scenario.buyer_target,
+                list_price=config.scenario.list_price,
                 category=config.scenario.category,
-                max_price=config.scenario.list_price,
                 lm=buyer_lm
             )
-            
             seller = HumanAgent(
                 strategy_name=config.seller_strategy,
                 target_price=config.scenario.seller_target,
@@ -124,6 +120,7 @@ class NegotiationRunner:
                 is_buyer=False,
                 lm=buyer_lm
             )
+            buyer.max_price_select()
 
         else:
             # 戦略固有の構成をもつ DSPy LMs を取得する
@@ -133,26 +130,34 @@ class NegotiationRunner:
                 config.buyer_strategy,
                 config.seller_strategy
             )
-
             # シナリオのコンテキストでエージェントを作成する
             buyer = BuyerAgent(
                 strategy_name=config.buyer_strategy,
                 target_price=config.scenario.buyer_target,
+                list_price=config.scenario.list_price,
                 category=config.scenario.category,
-                max_price=config.scenario.list_price,
                 lm=buyer_lm
             )
-
             seller = SellerAgent(
                 strategy_name=config.seller_strategy,
                 target_price=config.scenario.seller_target,
+                list_price=config.scenario.list_price,
                 category=config.scenario.category,
                 initial_price=config.scenario.list_price,
-                min_price=config.scenario.seller_target * 0.9, # 10% below target
                 lm=seller_lm
             )
+            buyer.max_price_select()
+            seller.min_price_select()
 
         return buyer, seller
+    
+    # 交渉のために価格抽出器を初期化する
+    def _initialize_extractor(self):
+        extractor_lm = self.dspy_manager.get_extractor_lm()
+        extractor = PriceExtractor(
+            lm=extractor_lm
+        )
+        return extractor
 
 
     def _validate_price_movement(
@@ -184,6 +189,7 @@ class NegotiationRunner:
         self,
         buyer: BuyerAgent,
         seller: SellerAgent,
+        extractor: PriceExtractor,
         metrics: NegotiationMetrics,
         timeout: float
     ) -> bool:
@@ -200,7 +206,7 @@ class NegotiationRunner:
             # タイムアウトでターンを実行する
             async with asyncio.timeout(timeout):
                 partner_data = metrics.messages[-1] if metrics.messages else None
-                response = current_agent.step(partner_data) # 2025/7/18 await current_agent.step()のawait削除
+                response = current_agent.step(partner_data, extractor) # 2025/7/18 await current_agent.step()のawait削除
 
                 # 2025/7/18 交渉の流れを見るためのprint追加 ##########################
                 #if current_agent.is_buyer == True:
@@ -281,6 +287,9 @@ class NegotiationRunner:
                 # エージェントを初期化
                 buyer, seller = self._initialize_agents(config)
 
+                # 価格抽出器を初期化 2025/9/17追加
+                price_extractor = self._initialize_extractor()
+
                 # active な交渉をトラッキングする
                 self.active_negotiations[config.scenario.scenario_id] = metrics
 
@@ -291,7 +300,7 @@ class NegotiationRunner:
                 continue_negotiation = True
                 
                 while (continue_negotiation and metrics.turns_taken < config.max_turns):
-                    continue_negotiation = await self._run_negotiation_turn(buyer, seller, metrics, config.turn_timeout)
+                    continue_negotiation = await self._run_negotiation_turn(buyer, seller, price_extractor, metrics, config.turn_timeout)
 
                 # ▼▼▼▼▼ 2025/7/18 このブロックをここに追加 ▼▼▼▼▼
                 # 最大ターン数に達して交渉が終了した場合の処理
@@ -383,7 +392,7 @@ def test_negotiation_runner():
         scenario=scenarios[0],
         buyer_model="llama3.1",
         seller_model="llama3.1",
-        buyer_strategy="cooperative",
+        buyer_strategy="length",
         seller_strategy="fair",
         max_turns=5,
         turn_timeout=30.0

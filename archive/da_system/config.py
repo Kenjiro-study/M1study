@@ -65,8 +65,8 @@ EXPERIMENT_CONFIGS: Dict[str, ExperimentConfig] = {
         turn_timeout=30.0,
         models=["llama3.1"],
         #models=["llama3.1", "llama-3.1-70b"],
-        #strategies=["cooperative", "fair", "aggressive"]
-        strategies=["aggressive"]
+        #strategies=["length", "fair", "utility"]
+        strategies=["utility"]
     ),
     "human_negotiation": ExperimentConfig(
         #num_scenarios=100,
@@ -75,22 +75,22 @@ EXPERIMENT_CONFIGS: Dict[str, ExperimentConfig] = {
         turn_timeout=30.0,
         models=["llama3.1"],
         #models=["llama3.1", "llama-3.1-70b"],
-        #strategies=["cooperative", "fair", "aggressive"]
-        strategies=["cooperative"]
+        #strategies=["length", "fair", "utility"]
+        strategies=["length"]
     ),
     "model_comparison": ExperimentConfig(
         num_scenarios=200,
         max_turns=20,
         turn_timeout=30.0,
         models=["llama3.1", "llama-3.1-70b"],
-        strategies=["cooperative", "fair"]
+        strategies=["length", "fair"]
     ),
     "strategy_analysis": ExperimentConfig(
         num_scenarios=150,
         max_turns=25,
         turn_timeout=30.0,
         models=["llama-3.1-70b"],
-        strategies=["cooperative", "fair", "aggressive"]
+        strategies=["length", "fair", "utility"]
     )
 }
 

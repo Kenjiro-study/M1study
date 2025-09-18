@@ -1,22 +1,9 @@
 # buyer.py
 from typing import Dict, Optional
-import dspy
+import dspy, random, math
 
 from .base_agent import BaseAgent
-
-# buyer の視点から交渉状況を分析する
-class BuyerStateAnalysis(dspy.Signature):
-    """Analyzes negotiation state from buyer's perspective."""
-    current_price: Optional[float] = dspy.InputField()
-    target_price: float = dspy.InputField()
-    strategy_name: str = dspy.InputField()
-    category: str = dspy.InputField()
-    num_turns: int = dspy.InputField()
-
-    price_sentiment: str = dspy.OutputField(desc="how good/bad current price is relative to target")
-    bargaining_power: str = dspy.OutputField(desc="current negotiating position strength")
-    recommended_flexibility: float = dspy.OutputField(desc="how much to deviate from target (0-1)")
-
+from .extractor import PriceExtractor
 
 class BuyerAgent(BaseAgent):
     """
@@ -28,6 +15,7 @@ class BuyerAgent(BaseAgent):
         self,
         strategy_name: str,
         target_price: float,
+        list_price: float, 
         category: str,
         max_price: Optional[float] = None,
         lm: dspy.LM = None
@@ -45,18 +33,28 @@ class BuyerAgent(BaseAgent):
         super().__init__(
             strategy_name=strategy_name,
             target_price=target_price,
+            list_price=list_price,
             category=category,
             is_buyer=True,
             lm=lm
         )
 
         self.max_price = max_price or (target_price * 1.1)
-        self.state_analyzer = dspy.ChainOfThought(BuyerStateAnalysis)
         self.best_offer_seen = float('inf') # 最低価格のオファーをトラッキング
 
-        # 交渉状況をトラッキング
-        self.total_concessions = 0
-        self.moves_since_concession = 0
+
+    def max_price_select(self) -> float:
+        """性格ごとの最高価格の設定"""
+        if self.strategy_name == "fair":
+            max_price = self.target_price + ((self.list_price - self.target_price) * random.uniform(1.0, 0.7))
+        elif self.strategy_name == "utility":
+            max_price = self.target_price + ((self.list_price - self.target_price) * random.uniform(1.0, 0.3))
+        elif self.strategy_name == "length":
+            max_price = self.target_price + ((self.list_price - self.target_price) * random.uniform(1.0, 0.5))
+        else:
+            raise ValueError("Invalid strategy name")
+
+        return round(max_price, 0)
 
     def _analyze_state(self) -> Dict:
         """buyer の視点から現在の交渉状況を分析する"""
@@ -81,9 +79,9 @@ class BuyerAgent(BaseAgent):
             'recommended_flexibility': analysis.recommended_flexibility
         }
 
-    def update_state(self, message: Dict[str, str], partner_data: Dict[str, str]=None) -> Dict:
+    def update_state(self, message: Dict[str, str]) -> Dict:
         """buyer-specific tracking で状態を更新"""
-        super().update_state(message, partner_data) # 基本状態の更新
+        super().update_state(message) # 基本状態の更新
                                         # (conversation, price history, actions, etc)
 
         # 相手（seller）からのオファーの場合のみ、best_offer_seenを更新する 2025/7/15変更
@@ -100,38 +98,192 @@ class BuyerAgent(BaseAgent):
                 self.moves_since_concession += 1
 
         return message
+    
+    def get_manager_context(self) -> Dict:
+        """予測の context を取得する"""
+        context = super().get_manager_context()
+        context.update({
+            "agent_strategy": self.strategy['buyer_manager_style'],
+        })
+        return context
+    
+    def fair_manager(self) -> Dict:
+        if self.partner_data['price'] != None:
+            if (self.target_price >= self.partner_data['price']) or ((len(self.partner_price_history) >= 2) and self.price_history and ((0.4 * self.price_history[-1] + 0.6 * self.partner_price_history[-2]) >= self.partner_data['price'])):
+                return{
+                    "intent": "agree",
+                    "price": None
+                }
+            elif self.pertner_intent_history.count("counter-price") + self.pertner_intent_history.count("insist") == 4:
+                return{
+                    "intent": "disagree",
+                    "price": None
+                }
+            elif self.price_history[-1] == self.max_price:
+                return{
+                    "intent": "insist",
+                    "price": self.max_price
+                }
+        
+        prediction = self.intent_predictor(**self.get_manager_context())
+        intent = prediction.next_intent
 
-    def predict_action_maneger(self) -> Dict:
-        """オーバーライドして buyer-specific の戦略上考慮すべき事項を追加する"""
-        prediction = super().predict_action_maneger() # base prediction を取得する
+        # init-priceと予測されたが, すでに価格提案がある場合はcounter-priceに変更
+        if (intent == "init-price") and (self.price_history) and (self.partner_price_history):
+            intent = "counter-price"
+        # counter-priceやinsistと予測されたが, まだ価格提案がない場合はinit-priceに変更
+        if ((intent == "counter-price") or (intent == "insist")) and (not self.price_history) and (not self.partner_price_history):
+            intent = "init-price"
 
-        # buyer context を追加
-        analysis = self._analyze_state()
-        prediction['state_analysis'] = analysis
+        # 価格の設定
+        price =  None  
+        if intent == "init-price":
+            price = self.target_price
+        elif intent == "counter-price":
+            if not self.price_history:
+                price = self.target_price
+            elif len(self.partner_price_history) < 2:
+                price = 0.7 * self.price_history[-1] + 0.3 * self.list_price
+            else:
+                price = 0.7 * self.price_history[-1] + 0.3 * self.partner_price_history[-1]
 
-        # 必要に応じて最高価格に基づいた調整を行う
-        if self.current_price and self.current_price > self.max_price:
-            if prediction['action'] == 'accept':
-                prediction['action'] = 'reject'
-                prediction['rationale'] += f"\nHowever, price (${self.current_price}) exceeds maximum (${self.max_price})"
-                prediction['counter_price'] = self.max_price * 0.95 # slightly below max
+            # 最高価格を超えていたら最高価格に設定
+            if price >= self.max_price:
+                price = self.max_price
+
+        elif intent == "insist":
+            if not self.price_history:
+                price = self.target_price
+            else:
+                price = self.price_history[-1]
+
+        return {
+            "intent": intent,
+            "price": price
+        }
+    
+    def utility_manager(self) -> Dict:
+        if self.partner_data['price'] != None:
+            if (self.target_price >= self.partner_data['price']) or ((len(self.partner_price_history) >= 2) and self.price_history and ((0.7 * self.price_history[-1] + 0.3 * self.partner_price_history[-2]) >= self.partner_data['price'])):
+                return{
+                    "intent": "agree",
+                    "price": None
+                }
+            elif self.pertner_intent_history.count("counter-price") + self.pertner_intent_history.count("insist") == 3:
+                return{
+                    "intent": "disagree",
+                    "price": None
+                }
+            elif self.price_history[-1] == self.max_price:
+                return{
+                    "intent": "insist",
+                    "price": self.max_price
+                }
+        
+        prediction = self.intent_predictor(**self.get_manager_context())
+        intent = prediction.next_intent
+
+        # init-priceと予測されたが, すでに価格提案がある場合はcounter-priceに変更
+        if (intent == "init-price") and (self.price_history) and (self.partner_price_history):
+            intent = "counter-price"
+        # counter-priceやinsistと予測されたが, まだ価格提案がない場合はinit-priceに変更
+        if ((intent == "counter-price") or (intent == "insist")) and (not self.price_history) and (not self.partner_price_history):
+            intent = "init-price"
+
+        # 価格の設定
+        price =  None  
+        if intent == "init-price":
+            price = self.target_price
+        elif intent == "counter-price":
+            if not self.price_history:
+                price = self.target_price
+            elif len(self.partner_price_history) < 2:
+                price = 0.9 * self.price_history[-1] + 0.1 * self.list_price
+            else:
+                price = 0.9 * self.price_history[-1] + 0.1 * self.partner_price_history[-1]
+
+            # 最高価格を超えていたら最高価格に設定
+            if price >= self.max_price:
+                price = self.max_price
+
+        elif intent == "insist":
+            if not self.price_history:
+                price = self.target_price
+            else:
+                price = self.price_history[-1]
+
+        return {
+            "intent": intent,
+            "price": price
+        }
+    
+    def length_manager(self) -> Dict:
+        if self.partner_data['price'] != None:
+            if (self.target_price >= self.partner_data['price']) or ((len(self.partner_price_history) >= 2) and self.price_history and ((0.6 * self.price_history[-1] + 0.4 * self.partner_price_history[-2]) >= self.partner_data['price'])):
+                return{
+                    "intent": "agree",
+                    "price": None
+                }
+            elif self.pertner_intent_history.count("counter-price") + self.pertner_intent_history.count("insist") == 5:
+                return{
+                    "intent": "disagree",
+                    "price": None
+                }
+            elif self.price_history[-1] == self.max_price:
+                return{
+                    "intent": "insist",
+                    "price": self.max_price
+                }
+        
+        prediction = self.intent_predictor(**self.get_manager_context())
+        intent = prediction.next_intent
+
+        # init-priceと予測されたが, すでに価格提案がある場合はcounter-priceに変更
+        if (intent == "init-price") and (self.price_history) and (self.partner_price_history):
+            intent = "counter-price"
+        # counter-priceやinsistと予測されたが, まだ価格提案がない場合はinit-priceに変更
+        if ((intent == "counter-price") or (intent == "insist")) and (not self.price_history) and (not self.partner_price_history):
+            intent = "init-price"
+
+        # 価格の設定
+        price =  None  
+        if intent == "init-price":
+            price = self.target_price
+        elif intent == "counter-price":
+            if not self.price_history:
+                price = self.target_price
+            elif len(self.partner_price_history) < 2:
+                price = 0.8 * self.price_history[-1] + 0.2 * self.list_price
+            else:
+                price = 0.8 * self.price_history[-1] + 0.2 * self.partner_price_history[-1]
+            
+            # 最高価格を超えていたら最高価格に設定
+            if price >= self.max_price:
+                price = self.max_price
+
+        elif intent == "insist":
+            if not self.price_history:
+                price = self.target_price
+            else:
+                price = self.price_history[-1]
+
+        return {
+            "intent": intent,
+            "price": price
+        }
+
+
+    def predict_action_manager(self) -> Dict:
+        if self.strategy_name == "fair":
+            prediction = self.fair_manager()
+        elif self.strategy_name == "utility":
+            prediction = self.utility_manager()
+        elif self.strategy_name == "length":
+            prediction = self.length_manager()
+        else:
+            raise ValueError("Invalid strategy name")
 
         return prediction
-    
-    # 2025/7/15 変更
-    def prepare_response_generation(self, action: str, price: Optional[float] = None) -> Dict:
-        context = super().prepare_response_generation(action, price) # base prediction を取得する
-
-        analysis = self._analyze_state()
-
-        # 必要な情報をすべて渡してpredictorを呼び出す
-        context.update({
-            # buyer-specific context を追加する
-            "price_sentiment": analysis['price_sentiment'],
-            "bargaining_power": analysis['bargaining_power']
-        })
-
-        return context
 
 def test_buyer_agent():
     """Test buyer agent の機能をテストする"""
@@ -150,7 +302,7 @@ def test_buyer_agent():
 
     # buyer agent の作成
     buyer = BuyerAgent(
-        strategy_name="cooperative",
+        strategy_name="length",
         target_price=100.0,
         category="electronics",
         max_price=120.0,
@@ -168,7 +320,6 @@ def test_buyer_agent():
         "content": "I can offer it for $150"
     }
     buyer.update_state(message)
-    assert buyer.current_price == 150.0
     assert buyer.best_offer_seen == 150.0
 
     # counter-offer 生成のテスト

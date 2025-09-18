@@ -3,6 +3,7 @@ import os, dspy
 from typing import Dict, List, Optional
 
 from ..strategies import STRATEGIES, CATEGORY_CONTEXT
+from .extractor import PriceExtractor
 
 # 交渉メッセージから構造化された状態情報を抽出する
 class PriceExtractor(dspy.Signature):
@@ -99,7 +100,6 @@ class HumanAgent:
         # 状態のトラッキング
         self.conversation_history = []
         self.price_history = []
-        self.roles_sequence = []
         self.last_action = None
         self.current_price = None
         self.num_turns = 0
@@ -130,7 +130,6 @@ class HumanAgent:
 
         # 会話状態を更新する
         self.conversation_history.append(message)
-        self.roles_sequence.append(message['role'])
         self.num_turns += 1
 
         # 新しい価格が検出されたら, 価格の状態を更新する

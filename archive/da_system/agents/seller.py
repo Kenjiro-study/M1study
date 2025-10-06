@@ -1,9 +1,21 @@
 # seller.py
-from typing import Dict, Optional
-import dspy, random, math
+import dspy, random
+from typing import Optional
 
 from .base_agent import BaseAgent
+from .base_agent import NegotiationManager
 from .extractor import PriceExtractor
+
+# 交渉中に自然言語の応答を生成する
+class NegotiationResponse(dspy.Signature):
+    """You are a seller. Please negotiate the price of the product described in the item_information. Review the conversation_history to understand the flow of the conversation so far, and then generate a response to the partner_utterance. Your response should follow the given strategy, and if  offer_price is provided, be sure to include that price in your response. Please limit your responses to the main points and keep them as short as possible."""
+    item_information: str = dspy.InputField(desc="Product name, category, list price, and detailed description for negotiation")
+    conversation_history: str = dspy.InputField(desc="Previous chat history")
+    partner_utterance: dict = dspy.InputField(desc="The partner's statement to which we should respond. This includes information on price, role, intended meaning of the statement, and the content of the statement.")
+    strategy: str = dspy.InputField(desc="Response strategy. Please generate a response based on this information.")
+    offer_price: Optional[float] = dspy.InputField(desc="Your proposed price. If it's not None, please be sure to include this price in your response.")
+
+    response: str = dspy.OutputField(desc="natural language response following strategy guidance")
 
 class SellerAgent(BaseAgent):
     """
@@ -17,7 +29,8 @@ class SellerAgent(BaseAgent):
         target_price: float,
         list_price: float,
         category: str,
-        min_price: Optional[float] = None,
+        item_info: dict[str, any],
+        min_price: float | None = None,
         lm: dspy.LM = None
     ):
         """
@@ -36,11 +49,16 @@ class SellerAgent(BaseAgent):
             list_price=list_price,
             category=category,
             is_buyer=False,
+            item_info = item_info, # 2025/9/18 追加
             lm=lm
         )
 
+        self.strategy_name = strategy_name 
         self.min_price = min_price or (target_price * 0.9)
-        self.best_offer_seen = 0 # 最高額のオファーをトラッキング
+
+        # predictor modules のセットアップ
+        self.response_predictor = dspy.ChainOfThought(NegotiationResponse)
+        self.intent_predictor = dspy.ChainOfThought(NegotiationManager)
 
     def min_price_select(self) -> float:
         """性格ごとの最低価格の設定"""
@@ -55,7 +73,7 @@ class SellerAgent(BaseAgent):
 
         return round(min_price, 0)
     
-    def get_manager_context(self) -> Dict:
+    def get_manager_context(self) -> dict:
         """予測の context を取得する"""
         context = super().get_manager_context()
         context.update({
@@ -63,7 +81,7 @@ class SellerAgent(BaseAgent):
         })
         return context
     
-    def fair_manager(self) -> Dict:
+    def fair_manager(self) -> dict:
         if self.partner_data['price'] != None:
             if (self.partner_data['price'] >= self.target_price) or ((len(self.partner_price_history) >= 2) and self.price_history and (self.partner_data['price'] >= (0.4 * self.price_history[-1] + 0.6 * self.partner_price_history[-2]))):
                 return{
@@ -75,14 +93,14 @@ class SellerAgent(BaseAgent):
                     "intent": "disagree",
                     "price": None
                 }
-            elif self.price_history[-1] == self.min_price:
+            elif len(self.price_history) >= 1 and self.price_history[-1] == self.min_price:
                 return{
                     "intent": "insist",
                     "price": self.min_price
                 }
         
         prediction = self.intent_predictor(**self.get_manager_context())
-        intent = prediction.next_intent
+        intent = (prediction.next_intent).split('\n')[0].strip()
 
         # init-priceと予測されたが, すでに価格提案がある場合はcounter-priceに変更
         if (intent == "init-price") and (self.price_history) and (self.partner_price_history):
@@ -118,7 +136,7 @@ class SellerAgent(BaseAgent):
             "price": price
         }
     
-    def utility_manager(self) -> Dict:
+    def utility_manager(self) -> dict:
         if self.partner_data['price'] != None:
             if (self.partner_data['price'] >= self.target_price) or ((len(self.partner_price_history) >= 2) and self.price_history and (self.partner_data['price'] >= (0.7 * self.price_history[-1] + 0.3 * self.partner_price_history[-2]))):
                 return{
@@ -130,14 +148,14 @@ class SellerAgent(BaseAgent):
                     "intent": "disagree",
                     "price": None
                 }
-            elif self.price_history[-1] == self.min_price:
+            elif len(self.price_history) >= 1 and self.price_history[-1] == self.min_price:
                 return{
                     "intent": "insist",
                     "price": self.min_price
                 }
         
         prediction = self.intent_predictor(**self.get_manager_context())
-        intent = prediction.next_intent
+        intent = (prediction.next_intent).split('\n')[0].strip()
 
         # init-priceと予測されたが, すでに価格提案がある場合はcounter-priceに変更
         if (intent == "init-price") and (self.price_history) and (self.partner_price_history):
@@ -173,7 +191,7 @@ class SellerAgent(BaseAgent):
             "price": price
         }
     
-    def length_manager(self) -> Dict:
+    def length_manager(self) -> dict:
         if self.partner_data['price'] != None:
             if (self.partner_data['price'] >= self.target_price) or ((len(self.partner_price_history) >= 2) and self.price_history and (self.partner_data['price'] >= (0.6 * self.price_history[-1] + 0.4 * self.partner_price_history[-2]))):
                 return{
@@ -185,14 +203,14 @@ class SellerAgent(BaseAgent):
                     "intent": "disagree",
                     "price": None
                 }
-            elif self.price_history[-1] == self.min_price:
+            elif len(self.price_history) >= 1 and self.price_history[-1] == self.min_price:
                 return{
                     "intent": "insist",
                     "price": self.min_price
                 }
         
         prediction = self.intent_predictor(**self.get_manager_context())
-        intent = prediction.next_intent
+        intent = (prediction.next_intent).split('\n')[0].strip()
 
         # init-priceと予測されたが, すでに価格提案がある場合はcounter-priceに変更
         if (intent == "init-price") and (self.price_history) and (self.partner_price_history):
@@ -228,7 +246,18 @@ class SellerAgent(BaseAgent):
             "price": price
         }
 
-    def predict_action_manager(self) -> Dict:
+    def predict_action_manager(self) -> dict:
+        if self.last_action == "agree":
+            return{
+                "intent": "accept",
+                "price": None
+            }
+        elif self.last_action == "disagree":
+            return{
+                "intent": "reject",
+                "price": None
+            }
+        
         if self.strategy_name == "fair":
             prediction = self.fair_manager()
         elif self.strategy_name == "utility":
@@ -239,7 +268,12 @@ class SellerAgent(BaseAgent):
             raise ValueError("Invalid strategy name")
 
         return prediction
+    
+    def response_generation(self, intent: str, price: float | None = None) -> dict:
+        context = super().response_generation(intent, price)
+        response_prediction = self.response_predictor(**context)
 
+        return response_prediction
 
 def test_seller_agent():
     """seller agent の機能をテストする"""
@@ -270,7 +304,6 @@ def test_seller_agent():
     assert seller.role == "seller"
     assert seller.min_price == 80.0
     assert seller.initial_price == 120.0
-    assert seller.best_offer_seen == 0
 
     # 最初のオファーのテスト
     response = seller.step()
@@ -283,7 +316,6 @@ def test_seller_agent():
         "content": "I can offer $90"
     }
     seller.update_state(message)
-    assert seller.best_offer_seen == 90.0
 
     # counter-offer 生成のテスト
     response = seller.step()

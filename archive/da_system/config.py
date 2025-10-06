@@ -35,11 +35,10 @@ MODEL_CONFIGS: Dict[str, ModelConfig] = {
         max_tokens=4096,
         temperature=0.7,
         prompt_template=(
-            "You are a {role} negotiating for {item}.\n"
-            "Your strategy is: {strategy}\n\n"
-            "Current conversation:\n{history}\n\n"
-            "Your target price is: ${target_price}\n"
-            "Respond as {role}:"
+            "Product name: {item_name}.\n"
+            "Category: {category}.\n"
+            "List Price: {list_price}.\n"
+            "Description: {description}."
         ),
     ),
     "llama-3.1-70b": ModelConfig(
@@ -66,7 +65,7 @@ EXPERIMENT_CONFIGS: Dict[str, ExperimentConfig] = {
         models=["llama3.1"],
         #models=["llama3.1", "llama-3.1-70b"],
         #strategies=["length", "fair", "utility"]
-        strategies=["utility"]
+        strategies=["length"]
     ),
     "human_negotiation": ExperimentConfig(
         #num_scenarios=100,
@@ -101,7 +100,6 @@ ANALYSIS_CONFIG = {
         "deal_rate", # 合意率
         "avg_utility", # 効用値の平均
         "turns_to_completion", # 交渉成立までの平均ターン数
-        "strategy_adherence" # どれくらい戦略に忠実に従ったか
     ],
     # 結果の可視化方法のリスト
     "visualizations": [

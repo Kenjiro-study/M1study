@@ -9,6 +9,7 @@ class GetPrice(dspy.Signature):
 
     extracted_price: Optional[float] = dspy.OutputField(desc="The price proposed in the message_content, if any")
     reasoning: str = dspy.OutputField(desc="explanation of extraction")
+    score: float = dspy.OutputField(desc="Confidence score (0.0 to 1.0) for the extraction.") # ← score フィールドを追加
 
 def _create_train_examples():
     # 学習データを返すヘルパー関数
@@ -19,6 +20,14 @@ def _create_train_examples():
         dspy.Example(message_content="This battery is $550 brand new. It has a large capacity and is very easy to use.", extracted_price=550, reasoning="The seller is implicitly communicating their asking price by mentioning the price when the item was new.").with_inputs("message_content"),
         dspy.Example(message_content="Sorry, I don't have any money right now, so I can't give you more than $2,150.", extracted_price=2150, reasoning="Buyers communicate their maximum asking price with reasons").with_inputs("message_content")
     ]
+
+def price_extraction_metric(example, prediction, _trace=None):
+    """
+    予測された extracted_price が、教師データの正解 (example.extracted_price) と
+    一致しているかを評価するメトリック。
+    """
+    # 価格が None の場合も考慮して、単純な一致比較を行う
+    return prediction.extracted_price == example.extracted_price
 
 class PriceExtractor:
     """
@@ -35,7 +44,7 @@ class PriceExtractor:
             extractor = dspy.ChainOfThought(GetPrice)
             train_examples = _create_train_examples()
             
-            optimizer = BootstrapFewShot(max_bootstrapped_demos=5)
+            optimizer = BootstrapFewShot(max_bootstrapped_demos=5, metric=price_extraction_metric)
             # コンパイルを実行
             cls._compiled_extractor = optimizer.compile(student=extractor, trainset=train_examples)
         return cls._compiled_extractor

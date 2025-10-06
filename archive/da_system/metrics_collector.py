@@ -216,8 +216,6 @@ class MetricsCollector:
             final_price=metrics.final_price,
             buyer_strategy=buyer_strategy,
             seller_strategy=seller_strategy,
-            buyer_adherence=metrics.strategy_adherence['buyer'],
-            seller_adherence=metrics.strategy_adherence['seller'],
             initial_price=initial_price,
             target_prices=target_prices,
             price_history=[p for p in metrics.messages if 'price' in p],
@@ -231,13 +229,11 @@ class MetricsCollector:
             success=computed['success'],
             turns=metrics.turns_taken,
             utility=metrics.buyer_utility or 0.0,
-            adherence=metrics.strategy_adherence['buyer']
         )
         self.strategy_metrics[seller_strategy].update(
             success=computed['success'],
             turns=metrics.turns_taken,
             utility=metrics.seller_utility or 0.0,
-            adherence=metrics.strategy_adherence['seller']
         )
 
         # 分析結果を保存
@@ -319,7 +315,6 @@ def test_metrics_collector():
         final_price=150.0,
         buyer_utility=0.8,
         seller_utility=0.7,
-        strategy_adherence={'buyer': 0.9, 'seller': 0.85},
         messages=[
             {'role': 'buyer', 'content': 'Offer: $100', 'price': 100},
             {'role': 'seller', 'content': 'Counter: $200', 'price': 200},

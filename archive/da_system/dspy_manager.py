@@ -121,7 +121,7 @@ class DSPyManager:
             provider="ollama",
             cache=True,
         )
-        return
+        return lm
 
     async def run_parallel(self, tasks: list) -> list:
         """複数の LM タスクを並列に実行する"""

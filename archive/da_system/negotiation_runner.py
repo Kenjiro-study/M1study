@@ -35,7 +35,6 @@ class NegotiationMetrics:
     final_price: Optional[float] = None
     buyer_utility: Optional[float] = None
     seller_utility: Optional[float] = None
-    strategy_adherence: Dict[str, float] = None
     messages: List[Dict] = field(default_factory=list) # 2025/7/18 Noneからfieldに変更
 
     def compute_duration(self) -> float:
@@ -95,7 +94,12 @@ class NegotiationRunner:
                 target_price=config.scenario.seller_target,
                 list_price=config.scenario.list_price,
                 category=config.scenario.category,
-                initial_price=config.scenario.list_price,
+                item_info={
+                    "item_name": (config.scenario).title,
+                    "category": (config.scenario).category,
+                    "list_price": (config.scenario).list_price,
+                    "description": (config.scenario).description
+                },
                 lm=seller_lm
             )
             seller.min_price_select()
@@ -111,6 +115,12 @@ class NegotiationRunner:
                 target_price=config.scenario.buyer_target,
                 list_price=config.scenario.list_price,
                 category=config.scenario.category,
+                item_info={
+                    "item_name": (config.scenario).title,
+                    "category": (config.scenario).category,
+                    "list_price": (config.scenario).list_price,
+                    "description": (config.scenario).description
+                },
                 lm=buyer_lm
             )
             seller = HumanAgent(
@@ -136,6 +146,12 @@ class NegotiationRunner:
                 target_price=config.scenario.buyer_target,
                 list_price=config.scenario.list_price,
                 category=config.scenario.category,
+                item_info={
+                    "item_name": (config.scenario).title,
+                    "category": (config.scenario).category,
+                    "list_price": (config.scenario).list_price,
+                    "description": (config.scenario).description
+                },
                 lm=buyer_lm
             )
             seller = SellerAgent(
@@ -143,12 +159,16 @@ class NegotiationRunner:
                 target_price=config.scenario.seller_target,
                 list_price=config.scenario.list_price,
                 category=config.scenario.category,
-                initial_price=config.scenario.list_price,
+                item_info={
+                    "item_name": (config.scenario).title,
+                    "category": (config.scenario).category,
+                    "list_price": (config.scenario).list_price,
+                    "description": (config.scenario).description
+                },
                 lm=seller_lm
             )
             buyer.max_price_select()
             seller.min_price_select()
-
         return buyer, seller
     
     # 交渉のために価格抽出器を初期化する
@@ -209,10 +229,10 @@ class NegotiationRunner:
                 response = current_agent.step(partner_data, extractor) # 2025/7/18 await current_agent.step()のawait削除
 
                 # 2025/7/18 交渉の流れを見るためのprint追加 ##########################
-                #if current_agent.is_buyer == True:
-                    #print("buyer: ", response["content"])
-                #else:
-                    #print("seller: ", response["content"])
+                if current_agent.is_buyer == True:
+                    print("buyer: ", response)
+                else:
+                    print("seller: ", response)
 
 
                 # message の構造を検証する
@@ -222,7 +242,6 @@ class NegotiationRunner:
                 # 必須となる fields を確認する
                 response.setdefault('price', None)
                 response.setdefault('intent', 'counter')
-                print(f"response: {response}")
 
                 # 価格の変動を検証する
                 #if response['price'] is not None:
@@ -236,7 +255,7 @@ class NegotiationRunner:
                         #logger.warning(f"Invalid price movement: {response}")
 
             # metrics を更新する
-            print(f"metrics.messages: {metrics.messages}")
+            # print(f"metrics.messages: {metrics.messages}")
             metrics.turns_taken += 1
             metrics.messages.append(response)
 
@@ -277,19 +296,14 @@ class NegotiationRunner:
             # metrics のトラッキングを初期化する
             metrics = NegotiationMetrics(
                 start_time=datetime.now(),
-                strategy_adherence={
-                    'buyer': 1.0, # 交渉中に更新される
-                    'seller': 1.0
-                }
             )
 
             try:
                 # エージェントを初期化
                 buyer, seller = self._initialize_agents(config)
-
                 # 価格抽出器を初期化 2025/9/17追加
                 price_extractor = self._initialize_extractor()
-
+                
                 # active な交渉をトラッキングする
                 self.active_negotiations[config.scenario.scenario_id] = metrics
 
@@ -339,12 +353,6 @@ class NegotiationRunner:
                 seller.compute_utility(metrics.final_price)
                 if hasattr(seller, 'compute_utility') else None
             )
-
-            # strategy adherence の更新
-            if hasattr(buyer, 'get_strategy_adherence'):
-                metrics.strategy_adherence['buyer'] = buyer.get_strategy_adherence()
-            if hasattr(seller, 'get_strategy_adherence'):
-                metrics.strategy_adherence['seller'] = seller.get_strategy_adherence()
 
     async def run_batch(
         self,

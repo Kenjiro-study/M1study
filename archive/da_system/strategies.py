@@ -145,17 +145,19 @@ CATEGORY_CONTEXT = {
 
 # intentごとの説明
 INTENT_CONTEXT = {
-    "intro": "",
-    "inquire": "",
-    "inform": "",
-    "init-price": "",
-    "vague-prce": "",
-    "counter-price": "",
-    "insist": "",
-    "disagree": "",
-    "agree": "",
-    "supplemental": "",
-    "thanks": ""
+    "intro": "Let's start the negotiations with a greeting",
+    "inquire": "Ask questions about the condition of the product, age, accessories, shipping method, etc",
+    "inform": "Answer questions from partner",
+    "init-price": "Make the first price proposal in a negotiation",
+    "vague-price": "Negotiate prices without specifying the price",
+    "counter-price": "Make a counter offer with a reason",
+    "insist": "Stick to your guns and make the same offer again",
+    "disagree": "Decline the other party's offer and end the negotiation",
+    "agree": "Accept the other person's offer",
+    "supplemental": "Add supplementary explanations based on product information to gain an advantage in negotiations.",
+    "thanks": "Express your gratitude to the other party for negotiating with you",
+    "accept": "Express your gratitude and then conclude the negotiations.",
+    "reject": "Inform them that we are ending the negotiations."
 }
 
 

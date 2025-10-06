@@ -38,7 +38,6 @@ class ModelPairMetrics:
     avg_buyer_utility: float = 0.0
     avg_seller_utility: float = 0.0
     avg_duration: float = 0.0
-    strategy_adherence: Dict[str, float] = None
 
 
 class ExperimentTracker:
@@ -198,8 +197,6 @@ class ExperimentTracker:
                 'final_price': metrics.final_price,
                 'buyer_utility': metrics.buyer_utility,
                 'seller_utility': metrics.seller_utility,
-                'strategy_adherence_buyer': metrics.strategy_adherence['buyer'],
-                'strategy_adherence_seller': metrics.strategy_adherence['seller']
             })
 
         summary_df = pd.DataFrame(summary_data)
@@ -254,7 +251,6 @@ def test_experiment_tracker():
             final_price=100.0,
             buyer_utility=0.8,
             seller_utility=0.7,
-            strategy_adherence={'buyer': 0.9, 'seller': 0.85}
         )
 
         tracker.record_completion(

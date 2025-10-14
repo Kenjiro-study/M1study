@@ -58,14 +58,14 @@ MODEL_CONFIGS: Dict[str, ModelConfig] = {
 # あらかじめ定義された実験の configurations
 EXPERIMENT_CONFIGS: Dict[str, ExperimentConfig] = {
     "baseline": ExperimentConfig(
-        #num_scenarios=100,
-        num_scenarios=1,
+        num_scenarios=20,
+        #num_scenarios=1,
         max_turns=20,
         turn_timeout=30.0,
         models=["llama3.1"],
         #models=["llama3.1", "llama-3.1-70b"],
-        #strategies=["length", "fair", "utility"]
-        strategies=["length"]
+        strategies=["length", "fair", "utility"]
+        #strategies=["length"]
     ),
     "human_negotiation": ExperimentConfig(
         #num_scenarios=100,

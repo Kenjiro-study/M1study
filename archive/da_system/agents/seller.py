@@ -73,6 +73,17 @@ class SellerAgent(BaseAgent):
 
         return round(min_price, 0)
     
+    def compute_utility(self, final_price: float, partner_target_price: float) -> float:
+        if final_price >= self.target_price:
+            return 1.0
+        elif final_price <= partner_target_price:
+            return (-1.0)
+
+        score_value = 2 * final_price - (self.target_price + partner_target_price)
+        target_diff = abs(self.target_price - partner_target_price)
+        utility = score_value / target_diff
+        return utility
+    
     def get_manager_context(self) -> dict:
         """予測の context を取得する"""
         context = super().get_manager_context()

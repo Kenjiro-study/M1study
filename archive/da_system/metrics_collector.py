@@ -1,6 +1,6 @@
 # metrics_collector.py
 import logging
-from typing import Dict, List, Optional
+from typing import Optional
 from dataclasses import dataclass, field
 import numpy as np
 import pandas as pd
@@ -16,21 +16,21 @@ logger.setLevel(logging.DEBUG)
 class StrategyMetrics:
     """戦略分析のための Metrics"""
     strategy_name: str
-    adherence_scores: List[float] = field(default_factory=list)
     success_rate: float = 0.0
     avg_turns: float = 0.0
     avg_utility: float = 0.0
-    language_metrics: Dict[str, float] = field(default_factory=dict)
+    language_metrics: dict[str, float] = field(default_factory=dict)
 
-    def update(self, success: bool, turns: int, utility: float, adherence: float):
+    count: int = field(init=False, default=0)
+
+    def update(self, success: bool, turns: int, utility: float):
         """新しい交渉結果で metrics を更新"""
-        self.adherence_scores.append(adherence)
-        n = len(self.adherence_scores)
+        self.count += 1
 
         # running averages を更新する
-        self.success_rate = ((n-1) * self.success_rate + float(success)) / n
-        self.avg_turns = ((n-1) * self.avg_turns + turns) / n
-        self.avg_utility = ((n-1) * self.avg_utility + utility) / n
+        self.success_rate = ((self.count-1) * self.success_rate + float(success)) / self.count
+        self.avg_turns = ((self.count-1) * self.avg_turns + turns) / self.count
+        self.avg_utility = ((self.count-1) * self.avg_utility + utility) / self.count
 
 
 @dataclass
@@ -49,19 +49,17 @@ class NegotiationAnalysis:
     # strategy analysis
     buyer_strategy: str
     seller_strategy: str
-    buyer_adherence: float
-    seller_adherence: float
 
     # price trajectory
     initial_price: float
-    target_prices: Dict[str, float] # buyer/seller targets
-    price_history: List[float]
+    target_prices: dict[str, float] # buyer/seller targets
+    price_history: list[float]
 
     # interaction analysis
-    message_lengths: List[int]
-    response_times: List[float]
+    message_lengths: list[int]
+    response_times: list[float]
 
-    def compute_metrics(self) -> Dict[str, float]:
+    def compute_metrics(self) -> dict[str, float]:
         """派生 metrics を計算する"""
         metrics = {
             'success': self.final_price is not None,
@@ -94,9 +92,8 @@ class NegotiationAnalysis:
             # 3. ゼロ除算エラーを防ぐ
             start_price = valid_prices[0]
             end_price = valid_prices[-1]
-            net_change = abs(end_price - start_price)
-
-            total_movement = np.abs(np.diff(valid_prices)).sum()
+            net_change = abs(end_price - start_price) # 最初と最後の価格の差
+            total_movement = np.abs(np.diff(valid_prices)).sum() # 全ての価格変動の差分の合計値
 
             if net_change == 0:
                 # 開始価格と最終価格が同じ場合
@@ -110,7 +107,7 @@ class NegotiationAnalysis:
         # 4. スコアがマイナスになる場合があるため、0未満にならないように調整
         directness = max(0.0, directness)
 
-        return np.mean([turn_score, time_score, directness])
+        return np.mean([turn_score, time_score, directness]) # ターンスコア, 時間スコア, 価格変動スコアの平均を取って効率性スコアとする
 
     def _compute_fairness(self) -> float:
         """交渉の fairness スコア (0-1) を計算"""
@@ -118,11 +115,8 @@ class NegotiationAnalysis:
             return 0.0
 
         # midpoint からの距離
-        fair_price = (self.target_prices['buyer'] + 
-                     self.target_prices['seller']) / 2
-        price_fairness = 1 - (abs(self.final_price - fair_price) /
-                             abs(self.target_prices['buyer'] - 
-                                 self.target_prices['seller']))
+        fair_price = (self.target_prices['buyer'] + self.target_prices['seller']) / 2 # 公平な価格は二人の目標価格の中央値
+        price_fairness = 1 - (abs(self.final_price - fair_price) / abs(self.target_prices['buyer'] - self.target_prices['seller'])) # 1 - (最終価格と公平な価格の差の絶対値 / 買い手と売り手の目標価格の差の絶対値)
         
         # 1. デフォルト値を設定 (計算不能な場合に使用)
         concession_balance = 0.5  # どちらとも言えない公平性として0.5を仮置き
@@ -147,7 +141,7 @@ class NegotiationAnalysis:
                 else:
                     concession_balance = 1 - abs(buyer_movement - seller_movement) / total_movement
 
-        return np.mean([price_fairness, concession_balance])
+        return np.mean([price_fairness, concession_balance]) # 価格の変動スコアと価格の公平性スコアの平均が公平性スコア
 
     def _compute_convergence(self) -> float:
         """C価格収束スコア (0-1) を計算"""
@@ -186,13 +180,13 @@ class MetricsCollector:
 
     def __init__(self):
         """metrics collector の初期化"""
-        self.strategy_metrics: Dict[str, StrategyMetrics] = {
+        self.strategy_metrics: dict[str, StrategyMetrics] = {
             name: StrategyMetrics(strategy_name=name)
             for name in STRATEGIES.keys()
         }
 
-        self.model_pairs: Dict[str, List[NegotiationAnalysis]] = {}
-        self.negotiations: Dict[str, NegotiationAnalysis] = {}
+        self.model_pairs: dict[str, list[NegotiationAnalysis]] = {}
+        self.negotiations: dict[str, NegotiationAnalysis] = {}
 
     def analyze_negotiation(
         self,
@@ -203,7 +197,7 @@ class MetricsCollector:
         seller_strategy: str,
         scenario_id: str,
         initial_price: float,
-        target_prices: Dict[str, float]
+        target_prices: dict[str, float]
     ) -> NegotiationAnalysis:
         """完了した交渉対話を分析する"""
 
@@ -249,16 +243,11 @@ class MetricsCollector:
         """各戦略の summary statistics を取得する"""
         records = []
         for strategy_name, metrics in self.strategy_metrics.items():
-            # adherence_scoresが空でない場合のみ計算し、空の場合は0.0とする 2025/7/17追加
-            adherence_mean = np.mean(metrics.adherence_scores) if metrics.adherence_scores else 0.0
-            adherence_std = np.std(metrics.adherence_scores) if metrics.adherence_scores else 0.0
             records.append({
                 'strategy': strategy_name,
                 'success_rate': metrics.success_rate,
                 'avg_turns': metrics.avg_turns,
                 'avg_utility': metrics.avg_utility,
-                'adherence_mean': adherence_mean,
-                'adherence_std': adherence_std
             })
         return pd.DataFrame.from_records(records)
 
@@ -289,7 +278,7 @@ class MetricsCollector:
             })
         return pd.DataFrame.from_records(records)
 
-    def export_analysis(self) -> Dict:
+    def export_analysis(self) -> dict:
         """完全な分析結果をエクスポートする"""
         return {
             'strategy_summary': self.get_strategy_summary().to_dict('records'),

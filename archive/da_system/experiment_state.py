@@ -4,7 +4,7 @@ AgreeMate における, 実験状態, チェックポイント, 結果の永続�
 実験の進行状況を追跡し, 必要に応じて実験のリカバリーを可能にする
 """
 import os, json, logging
-from typing import Dict, Optional
+from typing import Optional
 from dataclasses import dataclass, asdict
 from datetime import datetime
 import pandas as pd
@@ -77,9 +77,9 @@ class ExperimentTracker:
         )
 
         # results tracking を初期化
-        self.completed_negotiations: Dict[str, NegotiationMetrics] = {}
-        self.failed_negotiations: Dict[str, Dict] = {}
-        self.model_pair_metrics: Dict[str, ModelPairMetrics] = {}
+        self.completed_negotiations: dict[str, NegotiationMetrics] = {}
+        self.failed_negotiations: dict[str, dict] = {}
+        self.model_pair_metrics: dict[str, ModelPairMetrics] = {}
 
     def record_completion(
         self,
@@ -126,7 +126,7 @@ class ExperimentTracker:
         self,
         scenario_id: str,
         error: Exception,
-        context: Dict
+        context: dict
     ):
         """交渉の失敗を記録する"""
         self.failed_negotiations[scenario_id] = {
@@ -232,7 +232,7 @@ class ExperimentTracker:
 
 def test_experiment_tracker():
     """experiment tracker 機能をテストする"""
-    from config import EXPERIMENT_CONFIGS
+    from .config import EXPERIMENT_CONFIGS
     import tempfile
 
     with tempfile.TemporaryDirectory() as temp_dir:

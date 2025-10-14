@@ -83,6 +83,17 @@ class BuyerAgent(BaseAgent):
             raise ValueError("Invalid strategy name")
 
         return round(max_price, 0)
+    
+    def compute_utility(self, final_price: float, partner_target_price: float) -> float:
+        if final_price >= partner_target_price:
+            return 1.0
+        elif final_price <= self.target_price:
+            return (-1.0)
+
+        score_value = 2 * final_price - (self.target_price + partner_target_price)
+        target_diff = abs(self.target_price - partner_target_price)
+        utility = score_value / target_diff
+        return utility
 
     def _analyze_state(self) -> dict:
         """buyer の視点から現在の交渉状況を分析する"""

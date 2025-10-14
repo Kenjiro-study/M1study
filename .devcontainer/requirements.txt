@@ -34,3 +34,6 @@ datasets
 scikit-learn
 tqdm # for progress bars
 tensorboard
+
+# nltk
+nltk

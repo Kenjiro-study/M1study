@@ -1,6 +1,6 @@
 # negotiation_runner.py
 import logging, asyncio
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 from dataclasses import dataclass, field # 2025/7/18 field追加
 from datetime import datetime
 
@@ -35,7 +35,7 @@ class NegotiationMetrics:
     final_price: Optional[float] = None
     buyer_utility: Optional[float] = None
     seller_utility: Optional[float] = None
-    messages: List[Dict] = field(default_factory=list) # 2025/7/18 Noneからfieldに変更
+    messages: list[dict] = field(default_factory=list) # 2025/7/18 Noneからfieldに変更
 
     def compute_duration(self) -> float:
         """交渉時間を秒単位で計算する"""
@@ -65,7 +65,7 @@ class NegotiationRunner:
         self.dspy_manager = dspy_manager
         self.max_concurrent = max_concurrent
         self.semaphore = asyncio.Semaphore(max_concurrent)
-        self.active_negotiations: Dict[str, NegotiationMetrics] = {}
+        self.active_negotiations: dict[str, NegotiationMetrics] = {}
 
     def _show_scenario(self,scenario):
             print("\n--------Let's Negotiate!--------\n" \
@@ -229,10 +229,10 @@ class NegotiationRunner:
                 response = current_agent.step(partner_data, extractor) # 2025/7/18 await current_agent.step()のawait削除
 
                 # 2025/7/18 交渉の流れを見るためのprint追加 ##########################
-                if current_agent.is_buyer == True:
-                    print("buyer: ", response)
-                else:
-                    print("seller: ", response)
+                #if current_agent.is_buyer == True:
+                    #print("buyer: ", response)
+                #else:
+                    #print("seller: ", response)
 
 
                 # message の構造を検証する
@@ -345,19 +345,13 @@ class NegotiationRunner:
         """最終的な交渉 metrics の計算"""
         if metrics.final_price:
             # utilities の計算
-            metrics.buyer_utility = (
-                buyer.compute_utility(metrics.final_price)
-                if hasattr(buyer, 'compute_utility') else None
-            )
-            metrics.seller_utility = (
-                seller.compute_utility(metrics.final_price)
-                if hasattr(seller, 'compute_utility') else None
-            )
+            metrics.buyer_utility = buyer.compute_utility(metrics.final_price, seller.target_price)
+            metrics.seller_utility = seller.compute_utility(metrics.final_price, buyer.target_price)
 
     async def run_batch(
         self,
-        configs: List[NegotiationConfig]
-    ) -> Dict[str, NegotiationMetrics]:
+        configs: list[NegotiationConfig]
+    ) -> dict[str, NegotiationMetrics]:
         """バッチの交渉を並列して実行する"""
         tasks = []
         for config in configs:

@@ -110,9 +110,13 @@ class SearchGenerator:
             price = None
         lf = LF(intent, price=price)
         text = self.fill_template(template['template'], price=price)
-        utterance = Utterance(raw_text=text, logical_form=lf, template=template)
-        return utterance
-
+        #utterance = Utterance(raw_text=text, logical_form=lf, template=template)
+        return {
+            "response": text,
+            "intent": intent,
+            "price": price
+        }
+    
 def get_template():
     file_path = 'archive/da_system/agents/generator/template.csv'
     return pd.read_csv(file_path)
@@ -150,7 +154,7 @@ def test_search_generator():
     search_generator =  SearchGenerator(template, kb)
 
     response = search_generator.template_message(action, price=price)
-    print(response)
+    print("response: ", response)
 
 if __name__ == "__main__":
     manager = test_search_generator()

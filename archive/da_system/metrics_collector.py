@@ -232,7 +232,7 @@ class MetricsCollector:
 
         # 分析結果を保存
         self.negotiations[scenario_id] = analysis
-        pair_key = f"{buyer_model}_{seller_model}"
+        pair_key = f"{buyer_model}:{buyer_strategy}_{seller_model}:{seller_strategy}"
         if pair_key not in self.model_pairs:
             self.model_pairs[pair_key] = []
         self.model_pairs[pair_key].append(analysis)

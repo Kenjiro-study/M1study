@@ -37,7 +37,7 @@ class PriceExtractor:
     _compiled_extractor = None
 
     @classmethod
-    def _get_compiled_extractor(cls):
+    def _get_compiled_extractor(cls, lm: dspy.LM):
         if cls._compiled_extractor is None:
             from dspy.teleprompt import BootstrapFewShot
 
@@ -46,7 +46,8 @@ class PriceExtractor:
             
             optimizer = BootstrapFewShot(max_bootstrapped_demos=5, metric=price_extraction_metric)
             # コンパイルを実行
-            cls._compiled_extractor = optimizer.compile(student=extractor, trainset=train_examples)
+            with dspy.context(lm=lm):
+                cls._compiled_extractor = optimizer.compile(student=extractor, trainset=train_examples)
         return cls._compiled_extractor
 
     def __init__(
@@ -62,11 +63,12 @@ class PriceExtractor:
         self.lm = lm
 
         # すべてのモジュールで提供された言語モデルを使用するように DSPy を構成する
-        dspy.settings.configure(lm=lm)
+        #dspy.settings.configure(lm=lm)
 
         # predictor modules のセットアップ
         # self.price_extractor = dspy.ChainOfThought(GetPrice) # 未コンパイルの抽出器
-        self.compiled_extractor =  self._get_compiled_extractor()
+        self.compiled_extractor =  self._get_compiled_extractor(lm=self.lm)
+
 
 def test_extractor():
     import pandas as pd

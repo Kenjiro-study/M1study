@@ -102,7 +102,9 @@ class NegotiationRunner:
                 },
                 lm=seller_lm
             )
-            seller.min_price_select()
+            seller.min_price = seller.min_price_select()
+            print("seller's target_price: ", seller.target_price) ############
+            print("seller's min_price: ", seller.min_price) #########
 
         elif config.seller_model == "human":
             buyer_lm = self.dspy_manager.get_lm(
@@ -130,7 +132,9 @@ class NegotiationRunner:
                 is_buyer=False,
                 lm=buyer_lm
             )
-            buyer.max_price_select()
+            buyer.max_price = buyer.max_price_select()
+            print("buyer's target_price: ", buyer.target_price) ############
+            print("buyer's max_price: ", buyer.max_price) ############
 
         else:
             # 戦略固有の構成をもつ DSPy LMs を取得する
@@ -167,8 +171,12 @@ class NegotiationRunner:
                 },
                 lm=seller_lm
             )
-            buyer.max_price_select()
-            seller.min_price_select()
+            buyer.max_price = buyer.max_price_select()
+            print("buyer's target_price: ", buyer.target_price) ############
+            print("buyer's max_price: ", buyer.max_price) ###########
+            seller.min_price = seller.min_price_select()
+            print("seller's target_price: ", seller.target_price) ############
+            print("seller's min_price: ", seller.min_price) #########
         return buyer, seller
     
     # 交渉のために価格抽出器を初期化する
@@ -227,13 +235,6 @@ class NegotiationRunner:
             async with asyncio.timeout(timeout):
                 partner_data = metrics.messages[-1] if metrics.messages else None
                 response = current_agent.step(partner_data, extractor) # 2025/7/18 await current_agent.step()のawait削除
-
-                # 2025/7/18 交渉の流れを見るためのprint追加 ##########################
-                #if current_agent.is_buyer == True:
-                    #print("buyer: ", response)
-                #else:
-                    #print("seller: ", response)
-
 
                 # message の構造を検証する
                 if not isinstance(response, dict) or 'role' not in response:
@@ -345,8 +346,8 @@ class NegotiationRunner:
         """最終的な交渉 metrics の計算"""
         if metrics.final_price:
             # utilities の計算
-            metrics.buyer_utility = buyer.compute_utility(metrics.final_price, seller.target_price)
-            metrics.seller_utility = seller.compute_utility(metrics.final_price, buyer.target_price)
+            metrics.buyer_utility = buyer.compute_utility(metrics.final_price)
+            metrics.seller_utility = seller.compute_utility(metrics.final_price)
 
     async def run_batch(
         self,

@@ -124,8 +124,7 @@ class ExperimentRunner:
                 self.tracker.record_completion(
                     scenario_id,
                     metrics,
-                    combination['buyer_model'],
-                    combination['seller_model']
+                    combination
                 )
 
                 # 交渉の分析

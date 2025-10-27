@@ -65,7 +65,7 @@ EXPERIMENT_CONFIGS: Dict[str, ExperimentConfig] = {
         models=["llama3.1"],
         #models=["llama3.1", "llama-3.1-70b"],
         strategies=["length", "fair", "utility"]
-        #strategies=["length"]
+        #strategies=["fair"]
     ),
     "human_negotiation": ExperimentConfig(
         #num_scenarios=100,

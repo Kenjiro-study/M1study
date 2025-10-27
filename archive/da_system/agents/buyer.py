@@ -5,10 +5,11 @@ from typing import Optional
 from .base_agent import BaseAgent
 from .base_agent import NegotiationManager
 from .extractor import PriceExtractor
+from ..strategies import BUYER_INTENT_CONTEXT, BUYER_LANGUAGE_SKILLS
 
 # 交渉中に自然言語の応答を生成する
 class NegotiationResponse(dspy.Signature):
-    """You are a buyer. First, reason step-by-step about how to construct your response. Then, generate the final response based on your reasoning.
+    """You are a BUYER. First, reason step-by-step about how to construct your response. Then, generate the final response based on your reasoning.
 
     [REASONING GUIDELINES]
     1. What is the overall STRATEGY?
@@ -17,12 +18,14 @@ class NegotiationResponse(dspy.Signature):
 
     [RESPONSE CONSTRAINTS]
     - The final response MUST include the exact `offer_price` if it is provided.
-    - The response must be natural and concise.
+    - The final answer MUST not contain any price information(e.g. "$100" etc.) unless `offer_price` is provided.
+    - The response MUST be natural and concise.
     """
     item_information: str = dspy.InputField(desc="Product name, category, list price, and detailed description for negotiation")
     conversation_history: str = dspy.InputField(desc="Previous chat history")
     partner_utterance: dict = dspy.InputField(desc="The partner's statement to which we should respond. This includes information on price, role, intended meaning of the statement, and the content of the statement.")
     strategy: str = dspy.InputField(desc="Response strategy. Please generate a response based on this information.")
+    language_skill: str = dspy.InputField(desc="Language skills complement strategy")
     offer_price: Optional[float] = dspy.InputField(desc="Your proposed price. If it's not None, please be sure to include this price in your response.")
 
     response: str = dspy.OutputField(desc="natural language response following strategy guidance")
@@ -65,10 +68,12 @@ class BuyerAgent(BaseAgent):
 
         self.strategy_name = strategy_name 
         self.max_price = max_price or (target_price * 1.1)
+        self.all_keys = list(BUYER_LANGUAGE_SKILLS.keys())
+        self.keys_to_pick = []
 
         # predictor modules のセットアップ
-        self.response_predictor = dspy.ChainOfThought(NegotiationResponse)
-        self.intent_predictor = dspy.ChainOfThought(NegotiationManager)
+        self.response_predictor = dspy.Predict(NegotiationResponse)
+        self.intent_predictor = dspy.Predict(NegotiationManager)
 
 
     def max_price_select(self) -> float:
@@ -81,18 +86,22 @@ class BuyerAgent(BaseAgent):
             max_price = self.target_price + ((self.list_price - self.target_price) * random.uniform(1.0, 0.5))
         else:
             raise ValueError("Invalid strategy name")
+        
+        # 最高価格が定価を超えてしまう場合には定価に修正
+        if max_price >= self.list_price:
+            max_price = self.list_price
 
         return round(max_price, 0)
     
-    def compute_utility(self, final_price: float, partner_target_price: float) -> float:
-        if final_price >= partner_target_price:
+    def compute_utility(self, final_price: float) -> float:
+        if final_price <= self.target_price:
             return 1.0
-        elif final_price <= self.target_price:
-            return (-1.0)
+        elif final_price >= self.max_price:
+            return 0.0
 
-        score_value = 2 * final_price - (self.target_price + partner_target_price)
-        target_diff = abs(self.target_price - partner_target_price)
-        utility = score_value / target_diff
+        final_diff = self.max_price - final_price
+        target_diff = self.max_price - self.target_price
+        utility = final_diff / target_diff
         return utility
 
     def _analyze_state(self) -> dict:
@@ -145,10 +154,10 @@ class BuyerAgent(BaseAgent):
                 }
         
         prediction = self.intent_predictor(**self.get_manager_context())
-        intent = (prediction.next_intent).split('\n')[0].strip()
+        intent = (prediction.next_intent).split('\n')[0].strip(" \n`")
 
         # init-priceと予測されたが, すでに価格提案がある場合はcounter-priceに変更
-        if (intent == "init-price") and (self.price_history) and (self.partner_price_history):
+        if (intent == "init-price") and (self.price_history or self.partner_price_history):
             intent = "counter-price"
         # counter-priceやinsistと予測されたが, まだ価格提案がない場合はinit-priceに変更
         if ((intent == "counter-price") or (intent == "insist")) and (not self.price_history) and (not self.partner_price_history):
@@ -200,10 +209,10 @@ class BuyerAgent(BaseAgent):
                 }
         
         prediction = self.intent_predictor(**self.get_manager_context())
-        intent = (prediction.next_intent).split('\n')[0].strip()
+        intent = (prediction.next_intent).split('\n')[0].strip(" \n`")
 
         # init-priceと予測されたが, すでに価格提案がある場合はcounter-priceに変更
-        if (intent == "init-price") and (self.price_history) and (self.partner_price_history):
+        if (intent == "init-price") and (self.price_history or self.partner_price_history):
             intent = "counter-price"
         # counter-priceやinsistと予測されたが, まだ価格提案がない場合はinit-priceに変更
         if ((intent == "counter-price") or (intent == "insist")) and (not self.price_history) and (not self.partner_price_history):
@@ -255,10 +264,10 @@ class BuyerAgent(BaseAgent):
                 }
         
         prediction = self.intent_predictor(**self.get_manager_context())
-        intent = (prediction.next_intent).split('\n')[0].strip()
+        intent = (prediction.next_intent).split('\n')[0].strip(" \n`")
 
         # init-priceと予測されたが, すでに価格提案がある場合はcounter-priceに変更
-        if (intent == "init-price") and (self.price_history) and (self.partner_price_history):
+        if (intent == "init-price") and (self.price_history or self.partner_price_history):
             intent = "counter-price"
         # counter-priceやinsistと予測されたが, まだ価格提案がない場合はinit-priceに変更
         if ((intent == "counter-price") or (intent == "insist")) and (not self.price_history) and (not self.partner_price_history):
@@ -315,8 +324,23 @@ class BuyerAgent(BaseAgent):
 
         return prediction
     
+    def select_language_skill(self, intent:str):
+        if intent in ["init-price", "counter-price","vague-price", "insist"]:
+            if not self.keys_to_pick:
+                self.keys_to_pick = self.all_keys.copy()
+                random.shuffle(self.keys_to_pick)
+            selected_key = self.keys_to_pick.pop()
+            sentence = BUYER_LANGUAGE_SKILLS[selected_key]
+        else:
+            sentence = ""
+        
+        return sentence
+    
     def response_generation(self, intent: str, price: float | None = None) -> dict:
         context = super().response_generation(intent, price)
+        strategy = BUYER_INTENT_CONTEXT[intent]
+        context["strategy"] = strategy
+        context["language_skill"] = self.select_language_skill(intent)
         response_prediction = self.response_predictor(**context)
 
         return response_prediction

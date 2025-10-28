@@ -38,6 +38,7 @@ class ModelPairMetrics:
     avg_buyer_utility: float = 0.0
     avg_seller_utility: float = 0.0
     avg_duration: float = 0.0
+    avg_fairness: float = 0.0
 
 
 class ExperimentTracker:
@@ -79,7 +80,7 @@ class ExperimentTracker:
         # results tracking を初期化
         self.completed_negotiations: dict[str, NegotiationMetrics] = {}
         self.failed_negotiations: dict[str, dict] = {}
-        self.model_pair_metrics: dict[str, ModelPairMetrics] = {}
+        self.model_pair_metrics: dict[str, ModelPairMetrics] = {}        
 
     def record_completion(
         self,
@@ -101,19 +102,14 @@ class ExperimentTracker:
 
         pair_metrics = self.model_pair_metrics[pair_key]
         pair_metrics.num_negotiations += 1
-        pair_metrics.deal_rate = (
-            len([n for n in self.completed_negotiations.values() 
-                 if n.final_price is not None]) / 
-            pair_metrics.num_negotiations
-        )
-        pair_metrics.avg_turns += (metrics.turns_taken - pair_metrics.avg_turns) / pair_metrics.num_negotiations
 
-        pair_metrics.avg_buyer_utility += (metrics.buyer_utility - pair_metrics.avg_buyer_utility) / pair_metrics.num_negotiations
-        pair_metrics.avg_seller_utility += (metrics.seller_utility - pair_metrics.avg_seller_utility) / pair_metrics.num_negotiations
+        pair_metrics.avg_fairness += (metrics.fairness - pair_metrics.avg_fairness) / pair_metrics.num_negotiations # 平均公平性
+        print("pair_metrics.avg_fairness: ", pair_metrics.avg_fairness)
+        pair_metrics.avg_turns += (metrics.turns_taken - pair_metrics.avg_turns) / pair_metrics.num_negotiations # 平均ターン数
+        pair_metrics.avg_buyer_utility += (metrics.buyer_utility - pair_metrics.avg_buyer_utility) / pair_metrics.num_negotiations # 平均buyer効用
+        pair_metrics.avg_seller_utility += (metrics.seller_utility - pair_metrics.avg_seller_utility) / pair_metrics.num_negotiations # 平均seller効用
 
-        pair_metrics.avg_duration += (
-            metrics.compute_duration() - pair_metrics.avg_duration
-        ) / pair_metrics.num_negotiations
+        pair_metrics.avg_duration += (metrics.compute_duration() - pair_metrics.avg_duration) / pair_metrics.num_negotiations # (平均交渉時間)
 
     def record_failure(
         self,

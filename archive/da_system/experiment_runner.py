@@ -147,6 +147,11 @@ class ExperimentRunner:
                     Exception("No agreement reached"),
                     combination
                 )
+        
+        pair_key = f"{combination['buyer_model']}:{combination['buyer_strategy']}_{combination['seller_model']}:{combination['seller_strategy']}"
+        if pair_key in self.tracker.model_pair_metrics:
+            pair_metrics = self.tracker.model_pair_metrics[pair_key]
+            pair_metrics.deal_rate += (pair_metrics.num_negotiations - pair_metrics.deal_rate) / len(results)
 
     async def run(self):
         """完全な実験を実行する"""

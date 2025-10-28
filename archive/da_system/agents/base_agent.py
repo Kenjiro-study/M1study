@@ -28,7 +28,7 @@ class NegotiationManager(dspy.Signature):
     - insist: Select to re-state your *previous price* after the partner has made a `counter-price`. 
     - supplemental: Select to provide additional information (e.g., product benefits) when the partner's intent was *not* `inquire`.
     - thanks: Select to express your gratitude for reaching an agreement.
-        (Condition: Only if your partner's "Partner's Intention" is "Agree" or "Thank you")"""
+        (Condition: Only if your partner's "partner_intent" is "agree" or "thanks")"""
     
     # --- 入力フィールド ---
     dialogue_history = dspy.InputField(desc="The past dialogue history with intent labels for each utterance.")

@@ -35,6 +35,7 @@ class NegotiationMetrics:
     final_price: Optional[float] = None
     buyer_utility: Optional[float] = None
     seller_utility: Optional[float] = None
+    fairness: Optional[float] = None
     messages: list[dict] = field(default_factory=list) # 2025/7/18 Noneからfieldに変更
 
     def compute_duration(self) -> float:
@@ -335,6 +336,18 @@ class NegotiationRunner:
                 return metrics
             finally: # active な交渉から除外する
                 self.active_negotiations.pop(config.scenario.scenario_id, None)
+    
+    def _compute_fairness(
+            self, 
+            final_price: float,
+            buyer_target_price: float,
+            seller_target_price: float
+    ):
+        median_diff = final_price - ((seller_target_price + buyer_target_price) / 2.0)
+        abs_median_diff = abs(median_diff)
+        target_diff = seller_target_price - buyer_target_price
+        fairness = 1.0 - (2.0 * abs_median_diff / target_diff)
+        return fairness
 
 
     def _compute_final_metrics(
@@ -348,6 +361,7 @@ class NegotiationRunner:
             # utilities の計算
             metrics.buyer_utility = buyer.compute_utility(metrics.final_price)
             metrics.seller_utility = seller.compute_utility(metrics.final_price)
+            metrics.fairness = self._compute_fairness(metrics.final_price, buyer.target_price, seller.target_price)
 
     async def run_batch(
         self,

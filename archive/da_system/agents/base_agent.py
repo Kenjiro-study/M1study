@@ -24,6 +24,7 @@ class NegotiationManager(dspy.Signature):
     - init-price: Select to make the *first* price proposal.
         (Condition: The `dialogue_history` and `partner_intent` must not yet contain `init-price`, `counter-price`, or `insist`.)
     - vague-price: Select to negotiate indirectly without stating a specific price (e.g., "That's a bit high...").
+        (Condition: Select this *only if* concrete price negotiation is deadlocked.)
     - counter-price: Select to propose a *different* price after the partner has proposed an `init-price` or `counter-price`.
     - insist: Select to re-state your *previous price* after the partner has made a `counter-price`. 
     - supplemental: Select to provide additional information (e.g., product benefits) when the partner's intent was *not* `inquire`.
@@ -176,6 +177,31 @@ class BaseAgent:
             "rationale": prediction.rationale,
             "next_intent": prediction.next_intent,
         }
+    
+    def clean_generator_output(self, text: str) -> str:
+    
+        # 1. \" を " に置換
+        cleaned = text.replace('\"', '"')
+    
+        # 2. "### Completed:" や "###" などのストップマーカーで分割し、本体部分を取得
+        #    複数のマーカーに対応
+        stop_markers = ["### Completed:", "###", "Completed:"]
+        for marker in stop_markers:
+            if marker in cleaned:
+                cleaned = cleaned.split(marker)[0]
+            
+        # 3. 前後の空白文字（\n など）を削除
+        cleaned = cleaned.strip()
+    
+        # 4. 全体が " で囲まれている場合、それを削除
+        #    例: "I appreciate..." -> I appreciate...
+        if cleaned.startswith('"') and cleaned.endswith('"'):
+            cleaned = cleaned.strip('"')
+        
+        # 5. 再度、前後の空白を削除（" を削除した後に残る可能性があるため）
+        cleaned = cleaned.strip()
+    
+        return cleaned
 
     def response_generation(self, intent: str, price: float | None = None) -> dict:
         """自然言語の応答を生成する"""
@@ -257,7 +283,7 @@ class BaseAgent:
                 intent=prediction["intent"], 
                 price=prediction["price"]
             )
-            #dspy.settings.lm.inspect_history(n=1) ###############
+            dspy.settings.lm.inspect_history(n=1) ###############
 
         print(f"generator result: {response_prediction['response']}") ########
 

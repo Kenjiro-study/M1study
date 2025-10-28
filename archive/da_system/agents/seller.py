@@ -315,6 +315,7 @@ class SellerAgent(BaseAgent):
         context["strategy"] = strategy
         context["language_skill"] = self.select_language_skill(intent)
         response_prediction = self.response_predictor(**context)
+        response_prediction['response'] = self.clean_generator_output(response_prediction['response'])
 
         return response_prediction
 

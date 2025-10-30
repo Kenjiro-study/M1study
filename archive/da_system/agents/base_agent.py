@@ -1,5 +1,5 @@
 # base_agent.py
-import os, dspy
+import os, dspy, re
 
 from ..strategies import STRATEGIES, CATEGORY_CONTEXT
 from .extractor import PriceExtractor
@@ -8,6 +8,8 @@ from transformers import AutoTokenizer
 from transformers import AutoModelForSequenceClassification
 import torch
 from torch.nn.functional import softmax
+
+PRICE_RELATED_INTENTS = ["init-price", "counter-price", "insist"]
 
 class NegotiationManager(dspy.Signature):
     """As a price negotiation agent, considering the dialogue history, the partner's last utterance, roles, and your own strategy, select the single most strategic "intent" to take next.
@@ -18,9 +20,7 @@ class NegotiationManager(dspy.Signature):
     3.  Finally, strictly follow the "Intent Selection Criteria" below to select the single most appropriate intent label.
     
     [INTENT SELECTION CRITERIA (top priorityy)]
-    - intro: Select at the beginning of the dialogue (e.g., when the history is empty or contains only greetings).
     - inquire: Select this when you need to ask about details such as the condition of the product.
-    - inform: Select only as a direct response to the partner's `inquire` intent.
     - init-price: Select to make the *first* price proposal.
         (Condition: The `dialogue_history` and `partner_intent` must not yet contain `init-price`, `counter-price`, or `insist`.)
     - vague-price: Select to negotiate indirectly without stating a specific price (e.g., "That's a bit high...").
@@ -41,8 +41,8 @@ class NegotiationManager(dspy.Signature):
 
     # --- 出力フィールド ---
     next_intent = dspy.OutputField(
-        desc="The intent label for the agent's next action. Choose exactly one from the following 9 types: "
-             "intro, inquire, inform, init-price, vague-price, counter-price, insist, supplemental, thanks"
+        desc="The intent label for the agent's next action. Choose exactly one from the following 7 types: "
+             "inquire, init-price, vague-price, counter-price, insist, supplemental, thanks"
     )
 
 class BaseAgent:
@@ -222,6 +222,9 @@ class BaseAgent:
             list_price = self.item_info["list_price"],
             description = self.item_info["description"]
         )
+        # 価格関連のインテントでない場合は定価の情報をプロンプトから消す(これで余計に価格情報を提示するのを防ぐ)
+        if intent not in PRICE_RELATED_INTENTS:
+            item_prompt = re.sub(r"List Price: \d+\.\d+\n?", "", item_prompt, flags=re.IGNORECASE)
         
         context = {
             "item_information": item_prompt,
@@ -283,7 +286,7 @@ class BaseAgent:
                 intent=prediction["intent"], 
                 price=prediction["price"]
             )
-            dspy.settings.lm.inspect_history(n=1) ###############
+            #dspy.settings.lm.inspect_history(n=1) ###############
 
         print(f"generator result: {response_prediction['response']}") ########
 

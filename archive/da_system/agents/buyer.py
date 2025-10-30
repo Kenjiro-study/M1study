@@ -16,10 +16,18 @@ class NegotiationResponse(dspy.Signature):
     2. Is there an `offer_price`? If yes, how will I include this specific price in my response sentence?
     3. Based on the strategy and the price, what is the most effective and concise message?
 
+    [PRICE HANDLING RULES (EXTREMELY IMPORTANT)]
+    1.  **Check if `offer_price` is provided (is not None).**
+    2.  **IF `offer_price` IS PROVIDED (e.g., $1895.0):**
+        - Your response *MUST* include this exact price.
+        - This applies to strategies like 'init-price', 'counter-price', 'insist', 'accept'.
+    3.  **IF `offer_price` IS NONE (e.g., for 'inform', 'inquire', 'vague-price'):**
+        - Your response *MUST NOT*, under any circumstances, include *any* specific monetary value or price number (e.g., "$1895.0", "1895").
+        - **DO NOT mention the 'List Price'** from `item_information`, even if the partner asks about the price.
+        - If the partner asks for the price, respond vaguely (e.g., "We can discuss the price," "What do you have in mind?") or state that you will propose a price soon.
+
     [RESPONSE CONSTRAINTS]
-    - The final response MUST include the exact `offer_price` if it is provided.
-    - The final answer MUST not contain any price information(e.g. "$100" etc.) unless `offer_price` is provided.
-    - The response MUST be natural and concise.
+    - **The response MUST be natural and concise.**
     """
     item_information: str = dspy.InputField(desc="Product name, category, list price, and detailed description for negotiation")
     conversation_history: str = dspy.InputField(desc="Previous chat history")
@@ -160,8 +168,11 @@ class BuyerAgent(BaseAgent):
         if (intent == "init-price") and (self.price_history or self.partner_price_history):
             intent = "counter-price"
         # counter-priceやinsistと予測されたが, まだ価格提案がない場合はinit-priceに変更
-        if ((intent == "counter-price") or (intent == "insist")) and (not self.price_history) and (not self.partner_price_history):
+        elif ((intent == "counter-price") or (intent == "insist")) and (not self.price_history) and (not self.partner_price_history):
             intent = "init-price"
+        # insistと予測されたが, まだ自分が価格提案を行っていない場合はcounter-priceに変更
+        elif (intent == "insist") and (not self.price_history):
+            intent = "counter-price"
 
         # 価格の設定
         price =  None  
@@ -215,8 +226,11 @@ class BuyerAgent(BaseAgent):
         if (intent == "init-price") and (self.price_history or self.partner_price_history):
             intent = "counter-price"
         # counter-priceやinsistと予測されたが, まだ価格提案がない場合はinit-priceに変更
-        if ((intent == "counter-price") or (intent == "insist")) and (not self.price_history) and (not self.partner_price_history):
+        elif ((intent == "counter-price") or (intent == "insist")) and (not self.price_history) and (not self.partner_price_history):
             intent = "init-price"
+        # insistと予測されたが, まだ自分が価格提案を行っていない場合はcounter-priceに変更
+        elif (intent == "insist") and (not self.price_history):
+            intent = "counter-price"
 
         # 価格の設定
         price =  None  
@@ -270,8 +284,11 @@ class BuyerAgent(BaseAgent):
         if (intent == "init-price") and (self.price_history or self.partner_price_history):
             intent = "counter-price"
         # counter-priceやinsistと予測されたが, まだ価格提案がない場合はinit-priceに変更
-        if ((intent == "counter-price") or (intent == "insist")) and (not self.price_history) and (not self.partner_price_history):
+        elif ((intent == "counter-price") or (intent == "insist")) and (not self.price_history) and (not self.partner_price_history):
             intent = "init-price"
+        # insistと予測されたが, まだ自分が価格提案を行っていない場合はcounter-priceに変更
+        elif (intent == "insist") and (not self.price_history):
+            intent = "counter-price"
 
         # 価格の設定
         price =  None  
@@ -302,7 +319,17 @@ class BuyerAgent(BaseAgent):
 
 
     def predict_action_manager(self) -> dict:
-        if self.last_action == "agree":
+        if self.num_turns == 0:
+            return{
+                "intent": "intro",
+                "price": None
+            }
+        elif self.partner_data and self.partner_data['intent'] == "inquire":
+            return{
+                "intent": "inform",
+                "price": None
+            }
+        elif self.last_action == "agree":
             return{
                 "intent": "accept",
                 "price": None

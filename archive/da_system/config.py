@@ -35,10 +35,10 @@ MODEL_CONFIGS: Dict[str, ModelConfig] = {
         max_tokens=4096,
         temperature=0.7,
         prompt_template=(
-            "Product name: {item_name}.\n"
-            "Category: {category}.\n"
-            "List Price: {list_price}.\n"
-            "Description: {description}."
+            "Product name: {item_name}\n"
+            "Category: {category}\n"
+            "List Price: {list_price}\n"
+            "Description: {description}"
         ),
     ),
     "llama-3.1-70b": ModelConfig(
@@ -58,14 +58,14 @@ MODEL_CONFIGS: Dict[str, ModelConfig] = {
 # あらかじめ定義された実験の configurations
 EXPERIMENT_CONFIGS: Dict[str, ExperimentConfig] = {
     "baseline": ExperimentConfig(
-        num_scenarios=20,
-        #num_scenarios=1,
+        #num_scenarios=10,
+        num_scenarios=2,
         max_turns=20,
         turn_timeout=30.0,
         models=["llama3.1"],
         #models=["llama3.1", "llama-3.1-70b"],
-        strategies=["length", "fair", "utility"]
-        #strategies=["fair"]
+        #strategies=["length", "fair", "utility"]
+        strategies=["fair"]
     ),
     "human_negotiation": ExperimentConfig(
         #num_scenarios=100,

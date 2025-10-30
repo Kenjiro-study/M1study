@@ -146,16 +146,16 @@ CATEGORY_CONTEXT = {
 # intentごとの説明
 BUYER_INTENT_CONTEXT = {
     # --- 交渉の開始と情報収集 ---
-    "intro": "Start the negotiation. Greet the seller or confirm the item of interest.",
-    "inquire": "Ask the seller specific questions about the item (e.g., condition, usage, accessories, shipping).",
-    "inform": "Answer a question from the seller. Provide the requested information clearly.",
-    "supplemental": "Provide supplementary information (e.g., your reason for wanting to buy, your budget, etc) to support your price or request. This is for justification, not a direct offer.",
+    "intro": "Greet the seller briefly or express your interest in their product briefly.",
+    "inquire": "Briefly ask the seller specific questions about the item (e.g., condition, usage, accessories, shipping).",
+    "inform": "Answer a question concisely from the seller. Provide the requested information clearly.",
+    "supplemental": "Briefly provide supplementary information (e.g., your reason for wanting to buy, your budget, etc) to support your price or request. This is for justification, not a direct offer.",
     # --- 価格交渉（offer_price が必須） ---
-    "init-price": "Make the *first* price proposal. Your response *must* include the `offer_price`.",
-    "counter-price": "Make a counter-offer in response to the seller. Your response *must* include the `offer_price`.",
+    "init-price": "Concisely Make the *first* price proposal. Your response *must* include the `offer_price`.",
+    "counter-price": "Concisely Make a counter-offer in response to the seller. Your response *must* include the `offer_price`.",
     "insist": "Re-state your previous `offer_price`. Hold your ground.",
     # --- 価格交渉（offer_price を使わない） ---
-    "vague-price": "Negotiate the price *without* making a specific offer. (e.g., 'Can you lower the price?', 'What's your best offer?'). Do *not* include an `offer_price`.",
+    "vague-price": "Negotiate the price concisely *without* making a specific offer. (e.g., 'Can you lower the price?', 'What's your best offer?'). Do *not* include an `offer_price`.",
     # --- 交渉中の応答 ---
     "disagree": "Reject the seller's *current* offer or proposal, *but continue* the negotiation. (e.g., 'That price is still too high.').",
     "agree": "Explicitly accept the seller's *current* offer or price. This signals the price negotiation is over, but does not end the chat.",
@@ -167,16 +167,16 @@ BUYER_INTENT_CONTEXT = {
 
 SELLER_INTENT_CONTEXT = {
     # --- 交渉の開始と情報収集 ---
-    "intro": "Start negotiating. Greet the buyer or let them know about your item.",
-    "inquire": "Ask the buyer if they have any specific questions about the product.",
-    "inform": "Answer a question from the buyer. Provide the requested information clearly.",
-    "supplemental": "Provide supplementary information (e.g., market price, item flaws, etc) to support your price or request. This is for justification, not a direct offer.",
+    "intro": "Greet the buyer briefly.",
+    "inquire": "Briefly ask the buyer if they have any specific questions about the product.",
+    "inform": "Answer a question concisely from the buyer. Provide the requested information clearly.",
+    "supplemental": "Briefly provide supplementary information (e.g., market price, item flaws, etc) to support your price or request. This is for justification, not a direct offer.",
     # --- 価格交渉（offer_price が必須） ---
-    "init-price": "Make the *first* price proposal. Your response *must* include the `offer_price`.",
-    "counter-price": "Make a counter-offer in response to the buyer. Your response *must* include the `offer_price`.", #and provide a brief reason.
+    "init-price": "Concisely make the *first* price proposal. Your response *must* include the `offer_price`.",
+    "counter-price": "Concisely make a counter-offer in response to the buyer. Your response *must* include the `offer_price`.", #and provide a brief reason.
     "insist": "Re-state your previous `offer_price`. Hold your ground.",
     # --- 価格交渉（offer_price を使わない） ---
-    "vague-price": "Negotiate the price *without* making a specific offer. (e.g., 'Can you lower the price?', 'What's your best offer?'). Do *not* include an `offer_price`.",
+    "vague-price": "Negotiate the price concisely *without* making a specific offer. (e.g., 'Can you lower the price?', 'What's your best offer?'). Do *not* include an `offer_price`.",
     # --- 交渉中の応答 ---
     "disagree": "Reject the buyer's *current* offer or proposal, *but continue* the negotiation. (e.g., 'That price is still too low.').",
     "agree": "Explicitly accept the buyer's *current* offer or price. This signals the price negotiation is over, but does not end the chat.",

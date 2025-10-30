@@ -7,30 +7,38 @@ from ..strategies import STRATEGIES, CATEGORY_CONTEXT
 from ..agents.buyer import BuyerAgent
 
 class NegotiationManager(dspy.Signature):
-    """The agent in a price negotiation dialogue determines the next action to be taken by taking into account the other party's statements and their intentions.
-From the presented options, output only one intent label that is strategically most appropriate.
-    # classification criteria (top priority)
-    - intro: Greetings or product introductions to start negotiations. Select at the beginning of the dialogue.
-    - inquire: Question about the product. 
-    - inform: Response to the question. Must be selected only if partner_role is inquire.
-    - init-price: Initial price proposal in negotiations. Select this to propose a price when the dialogu_history and partner_intent do not contain an init-price, counter-price, or insist.
-    - vague-price: Negotiating without mentioning the price. Select to indirectly convey one's wishes.
-    - counter-price: Counter price proposal.
-    - insist: Same price claim. Select this if you want to prioritize your margin.
-    - supplemental: Supplementary product description. Select this when partner_role is not inquire but you want to provide information about the product.
-    - thanks: Word of thanks. Select this to conclude the negotiation if partner_role is agree or thanks"""
+    """As a price negotiation agent, considering the dialogue history, the partner's last utterance, roles, and your own strategy, select the single most strategic "intent" to take next.
+
+    [THOUGHT PROCESS]
+    1.  First, analyze the current dialogue history and the partner's most recent `partner_intent`.
+    2.  Next, consider your own `agent_role` (e.g., Buyer or Seller) and `agent_strategy`.
+    3.  Finally, strictly follow the "Intent Selection Criteria" below to select the single most appropriate intent label.
+    
+    [INTENT SELECTION CRITERIA (top priorityy)]
+    - intro: Select at the beginning of the dialogue (e.g., when the history is empty or contains only greetings).
+    - inquire: Select this when you need to ask about details such as the condition of the product.
+    - inform: Select only as a direct response to the partner's `inquire` intent.
+    - init-price: Select to make the *first* price proposal.
+        (Condition: The `dialogue_history` and `partner_intent` must not yet contain `init-price`, `counter-price`, or `insist`.)
+    - vague-price: Select to negotiate indirectly without stating a specific price (e.g., "That's a bit high...").
+        (Condition: Select this *only if* concrete price negotiation is deadlocked.)
+    - counter-price: Select to propose a *different* price after the partner has proposed an `init-price` or `counter-price`.
+    - insist: Select to re-state your *previous price* after the partner has made a `counter-price`. 
+    - supplemental: Select to provide additional information (e.g., product benefits) when the partner's intent was *not* `inquire`.
+    - thanks: Select to express your gratitude for reaching an agreement.
+        (Condition: Only if your partner's "partner_intent" is "agree" or "thanks")"""
     
     # --- 入力フィールド ---
-    dialogue_history = dspy.InputField(desc="Dialogue history and its intention labels")
-    partner_utterance = dspy.InputField(desc="The previous statement to which you should respond")
-    partner_intent = dspy.InputField(desc="Label of the intention of the previous statement to which you should respond")
-    partner_role = dspy.InputField(desc="The role of the speaker of the previous statement to which the response should be made")
-    agent_role = dspy.InputField(desc="Your role: Buyer or Seller")
-    agent_strategy = dspy.InputField(desc="Your strategy for choosing intent. This is merely a selection guideline, and classification criteria take precedence over this.")
+    dialogue_history = dspy.InputField(desc="The past dialogue history with intent labels for each utterance.")
+    partner_utterance = dspy.InputField(desc="The partner's most recent utterance to respond to.")
+    partner_intent = dspy.InputField(desc="The intent label of the partner's most recent utterance.")
+    partner_role = dspy.InputField(desc="The role of the partner (e.g., Buyer, Seller).")
+    agent_role = dspy.InputField(desc="Your role (e.g., Buyer, Seller).")
+    agent_strategy = dspy.InputField(desc="Your strategy for selecting an intent. This is a guideline; the 'INTENT SELECTION CRITERIA' above take precedence.")
 
     # --- 出力フィールド ---
     next_intent = dspy.OutputField(
-        desc="The label of the intention of the next action the agent should take. Select one of the following 9 types: "
+        desc="The intent label for the agent's next action. Choose exactly one from the following 9 types: "
              "intro, inquire, inform, init-price, vague-price, counter-price, insist, supplemental, thanks"
     )
 

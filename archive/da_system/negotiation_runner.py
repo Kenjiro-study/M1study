@@ -229,7 +229,7 @@ class NegotiationRunner:
             bool: 交渉を継続する場合は True
         """
         try:
-            # buyerとsellerを交互に行う
+            # buyerとsellerを交互に行う(buyerから交渉開始)
             current_agent = buyer if metrics.turns_taken % 2 == 0 else seller
 
             # タイムアウトでターンを実行する
@@ -268,6 +268,7 @@ class NegotiationRunner:
                     response['price'] if response['intent'] == 'accept' 
                     else None
                 )
+                print("final_price: ", metrics.final_price)
                 return False
 
             return True

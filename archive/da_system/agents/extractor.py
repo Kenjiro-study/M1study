@@ -66,7 +66,7 @@ class PriceExtractor:
         #dspy.settings.configure(lm=lm)
 
         # predictor modules のセットアップ
-        # self.price_extractor = dspy.ChainOfThought(GetPrice) # 未コンパイルの抽出器
+        #self.price_extractor = dspy.ChainOfThought(GetPrice) # 未コンパイルの抽出器
         self.compiled_extractor =  self._get_compiled_extractor(lm=self.lm)
 
 
@@ -84,11 +84,9 @@ def test_extractor():
     )
 
     agent = PriceExtractor(
-        is_buyer=True,
         lm=test_lm,
     )
-
-    df = pd.read_csv('archive/da_system/agents/parser/data/cb_dataset_0~999.csv')
+    df = pd.read_csv('archive/da_system/agents/parser/data/cb_dataset_3500~3999.csv')
     df = df.drop("Unnamed: 0", axis=1)
     df = df.head(1000)
     df = df[df["meta_text"].isin(["counter-price", "init-price", "insist"])]
@@ -97,47 +95,42 @@ def test_extractor():
     df_text = df["text"]
 
     compiled = []
-    nomal = []
+    #nomal = []
 
-    for i, item in enumerate(df_text):
-        print(i)
-        compiled_extraction = agent.compiled_extractor(
-            message_content=item,
-            #is_buyer=True
-            #is_buyer=False
-        )
-        extraction = agent.price_extractor(
-            message_content=item,
-            #is_buyer=True
-            #is_buyer=False
-        )
-        compiled.append(compiled_extraction.extracted_price)
-        nomal.append(extraction.extracted_price)
+    with dspy.context(lm=agent.lm):
+        for i, item in enumerate(df_text):
+        
+            print(i)
+            compiled_extraction = agent.compiled_extractor(
+                message_content=item,
+            )
+            #extraction = agent.price_extractor(
+                #message_content=item,
+            #)
+            compiled.append(compiled_extraction.extracted_price)
+            #nomal.append(extraction.extracted_price)
 
     df["compiled"] = compiled
-    df["nomal"] = nomal
-    df.to_csv('output.csv', index=False, encoding='utf-8')
+    #df["nomal"] = nomal
+    df.to_csv('output5.csv', index=False, encoding='utf-8')
 
+    """
+        with dspy.context(lm=agent.lm):
+        while True:
+            user_input = input("入力(exitで終了): ")
 
-"""
-    while True:
-        user_input = input("入力(exitで終了): ")
+            if user_input == "exit":
+                break
+            else:
+                compiled_extraction = agent.compiled_extractor(
+                    message_content=user_input,
+                )
+                #extraction = agent.price_extractor(
+                    #message_content=user_input,
+                #)
+                print(f"compiled → price: {compiled_extraction.extracted_price}, reason: {compiled_extraction.reasoning}")
+                #print(f"normal → price: {extraction.extracted_price}, reason: {extraction.reasoning}")
 
-        if user_input == "exit":
-            break
-        else:
-            compiled_extraction = agent.compiled_extractor(
-                message_content=user_input,
-                is_buyer=True
-                #is_buyer=False
-            )
-            extraction = agent.price_extractor(
-                message_content=user_input,
-                is_buyer=True
-                #is_buyer=False
-            )
-            print(f"compiled → price: {compiled_extraction.extracted_price}, reason: {compiled_extraction.reasoning}")
-            print(f"normal → price: {extraction.extracted_price}, reason: {extraction.reasoning}")
 """
 
 if __name__ == "__main__":

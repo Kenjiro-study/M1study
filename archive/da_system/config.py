@@ -41,16 +41,15 @@ MODEL_CONFIGS: Dict[str, ModelConfig] = {
             "Description: {description}"
         ),
     ),
-    "llama-3.1-70b": ModelConfig(
-        name="meta-llama/Llama-3.1-70B-Instruct",
+    "llama3.3:70b": ModelConfig(
+        name="ollama/llama3.3:70b",
         max_tokens=128000,
         temperature=0.7,
         prompt_template=(
-            "You are a {role} negotiating for {item}.\n"
-            "Your strategy is: {strategy}\n\n"
-            "Current conversation:\n{history}\n\n"
-            "Your target price is: ${target_price}\n"
-            "Respond as {role}:"
+            "Product name: {item_name}\n"
+            "Category: {category}\n"
+            "List Price: {list_price}\n"
+            "Description: {description}"
         ),
     )
 }
@@ -58,37 +57,37 @@ MODEL_CONFIGS: Dict[str, ModelConfig] = {
 # あらかじめ定義された実験の configurations
 EXPERIMENT_CONFIGS: Dict[str, ExperimentConfig] = {
     "baseline": ExperimentConfig(
-        #num_scenarios=10,
-        num_scenarios=2,
+        num_scenarios=50,
+        #num_scenarios=2,
         max_turns=20,
         turn_timeout=30.0,
-        models=["llama3.1"],
-        #models=["llama3.1", "llama-3.1-70b"],
-        #strategies=["length", "fair", "utility"]
-        strategies=["fair"]
+        #models=["llama3.1"],
+        models=["llama3.3:70b"],
+        strategies=["length", "fair", "utility"]
+        #strategies=["fair"]
     ),
     "human_negotiation": ExperimentConfig(
         #num_scenarios=100,
         num_scenarios=1,
         max_turns=20,
         turn_timeout=30.0,
-        models=["llama3.1"],
-        #models=["llama3.1", "llama-3.1-70b"],
+        #models=["llama3.1"],
+        models=["llama3.3:70b"],
         #strategies=["length", "fair", "utility"]
-        strategies=["length"]
+        strategies=["fair"]
     ),
     "model_comparison": ExperimentConfig(
         num_scenarios=200,
         max_turns=20,
         turn_timeout=30.0,
-        models=["llama3.1", "llama-3.1-70b"],
+        models=["llama3.1", "llama3.3:70b"],
         strategies=["length", "fair"]
     ),
     "strategy_analysis": ExperimentConfig(
         num_scenarios=150,
         max_turns=25,
         turn_timeout=30.0,
-        models=["llama-3.1-70b"],
+        models=["llama3.3:70b"],
         strategies=["length", "fair", "utility"]
     )
 }

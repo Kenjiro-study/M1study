@@ -64,7 +64,7 @@ class DSPyManager:
 
         try:
             return dspy.LM(
-                config.base_config.name,
+                model=config.base_config.name,
                 temperature=context_config['temperature'],
                 max_tokens=context_config['max_tokens'],
                 provider="ollama",
@@ -117,7 +117,8 @@ class DSPyManager:
     
     def get_extractor_lm(self):
         lm = dspy.LM(
-            model="ollama/llama3.1",
+            model="ollama/llama3.3:70b",
+            #model="ollama/llama3.1",
             provider="ollama",
             cache=True,
         )

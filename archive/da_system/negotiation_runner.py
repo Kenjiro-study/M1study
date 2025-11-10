@@ -86,9 +86,15 @@ class NegotiationRunner:
             buyer = HumanAgent(
                 strategy_name=config.buyer_strategy,
                 target_price=config.scenario.buyer_target,
+                list_price=config.scenario.list_price,
                 category=config.scenario.category,
                 is_buyer=True,
-                lm=seller_lm
+                item_info={
+                    "item_name": (config.scenario).title,
+                    "category": (config.scenario).category,
+                    "list_price": (config.scenario).list_price,
+                    "description": (config.scenario).description
+                }
             )
             seller = SellerAgent(
                 strategy_name=config.seller_strategy,
@@ -103,7 +109,10 @@ class NegotiationRunner:
                 },
                 lm=seller_lm
             )
-            seller.min_price = seller.min_price_select()
+            #buyer.max_price = buyer.max_price_select()
+            print("buyer's target_price: ", buyer.target_price) ############
+            print("buyer's max_price: ", buyer.max_price) ############
+            #seller.min_price = seller.min_price_select()
             print("seller's target_price: ", seller.target_price) ############
             print("seller's min_price: ", seller.min_price) #########
 
@@ -129,13 +138,22 @@ class NegotiationRunner:
             seller = HumanAgent(
                 strategy_name=config.seller_strategy,
                 target_price=config.scenario.seller_target,
+                list_price=config.scenario.list_price,
                 category=config.scenario.category,
                 is_buyer=False,
-                lm=buyer_lm
+                item_info={
+                    "item_name": (config.scenario).title,
+                    "category": (config.scenario).category,
+                    "list_price": (config.scenario).list_price,
+                    "description": (config.scenario).description
+                }
             )
-            buyer.max_price = buyer.max_price_select()
+            #buyer.max_price = buyer.max_price_select()
             print("buyer's target_price: ", buyer.target_price) ############
             print("buyer's max_price: ", buyer.max_price) ############
+            #seller.min_price = seller.min_price_select()
+            print("seller's target_price: ", seller.target_price) ############
+            print("seller's min_price: ", seller.min_price) #########
 
         else:
             # 戦略固有の構成をもつ DSPy LMs を取得する
@@ -172,10 +190,10 @@ class NegotiationRunner:
                 },
                 lm=seller_lm
             )
-            buyer.max_price = buyer.max_price_select()
+            #buyer.max_price = buyer.max_price_select()
             print("buyer's target_price: ", buyer.target_price) ############
             print("buyer's max_price: ", buyer.max_price) ###########
-            seller.min_price = seller.min_price_select()
+            #seller.min_price = seller.min_price_select()
             print("seller's target_price: ", seller.target_price) ############
             print("seller's min_price: ", seller.min_price) #########
         return buyer, seller
@@ -216,8 +234,8 @@ class NegotiationRunner:
 
     async def _run_negotiation_turn(
         self,
-        buyer: BuyerAgent,
-        seller: SellerAgent,
+        buyer, # BuyerAgent
+        seller, # SellerAgent
         extractor: PriceExtractor,
         metrics: NegotiationMetrics,
         timeout: float
@@ -354,8 +372,8 @@ class NegotiationRunner:
     def _compute_final_metrics(
         self,
         metrics: NegotiationMetrics,
-        buyer: BuyerAgent,
-        seller: SellerAgent
+        buyer,
+        seller
     ):
         """最終的な交渉 metrics の計算"""
         if metrics.final_price:

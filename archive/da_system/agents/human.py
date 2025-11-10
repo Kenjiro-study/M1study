@@ -1,117 +1,123 @@
 # human.py
-import os, dspy
-from typing import Dict, List, Optional
+import os, dspy, random, math
+from typing import Dict
+
+from transformers import AutoTokenizer
+from transformers import AutoModelForSequenceClassification
+import torch
+from torch.nn.functional import softmax
 
 from ..strategies import STRATEGIES, CATEGORY_CONTEXT
-from .extractor import PriceExtractor
-
-# 交渉メッセージから構造化された状態情報を抽出する
-class PriceExtractor(dspy.Signature):
-    """Accurately extract the proposed price information written in the negotiation message. Do not extract prices from statements that negate the other party's price, but only extract prices when you are proposing a price."""
-    message_content: str = dspy.InputField(desc="This is the message from which you want to extract the price. We will extract the proposed price from this sentence.")
-    #is_buyer: bool = dspy.InputField(desc="True if you are the buyer in the negotiation, False if you are the seller")
-
-    extracted_price: Optional[float] = dspy.OutputField(desc="The price proposed in the message_content, if any")
-    reasoning: str = dspy.OutputField(desc="explanation of extraction")
-
-def _create_train_examples():
-    # 学習データを返すヘルパー関数
-    return[     
-        #dspy.Example(message_content="hey ! i can offer $150 for the credenza .", is_buyer = "True", extracted_price=150, reasoning="The buyer states that he can buy the item for $150.").with_inputs("message_content", "is_buyer"),
-        #dspy.Example(message_content="i do ! but since i'm a bargain shower i'd like to offer you thirty dollors.", is_buyer = "True", extracted_price=30, reasoning="The buyer states in English, not in numbers, that he can buy the item for $30.").with_inputs("message_content", "is_buyer"),
-        #dspy.Example(message_content="i see you are asking 1100 but i am really on a budget , would you take 650 ?", is_buyer = "True", extracted_price=650, reasoning="The buyer confirms that the seller has offered $1,100 and then offers $650.").with_inputs("message_content", "is_buyer"),
-        #dspy.Example(message_content="$300 is too expensive. It's old and damaged, how about $250?", is_buyer = "True", extracted_price=250, reasoning="The buyer rejects the seller's offer of $300 as too high and states his own asking price of $250.").with_inputs("message_content", "is_buyer"),
-        #dspy.Example(message_content="how many miles are on this 2008 ? have they been in town or on the highway ?", is_buyer = "True", extracted_price="None", reasoning="No price was mentioned for the 2008 model year car.").with_inputs("message_content", "is_buyer"),
-        #dspy.Example(message_content="How many years ago did you purchase this product?", is_buyer = "True", extracted_price="None", reasoning="The question is about the condition of the product, and there is no mention of price.").with_inputs("message_content", "is_buyer"),
-        #dspy.Example(message_content="I can pick it up tomorrow at 12 noon.", is_buyer = "True", extracted_price="None", reasoning="This is a statement about receiving the product, and does not mention the price.").with_inputs("message_content", "is_buyer"),
-        #dspy.Example(message_content="i'd be willing to meet you in the middle for $35 ?", is_buyer = "False", extracted_price=35, reasoning="The seller is willing to compromise on $35 to complete the deal.").with_inputs("message_content", "is_buyer"),
-        #dspy.Example(message_content="was hoping for something around 8,000 dollars but it's really no use to me so i'd be willing to go lower", is_buyer = "False", extracted_price=8000, reasoning="The seller offers $800, but says there's room for negotiation and is willing to go lower.").with_inputs("message_content", "is_buyer"),
-        #dspy.Example(message_content="i would offer you fifty dollars", is_buyer = "False", extracted_price=50, reasoning="The seller states in English, not in numbers, that he can sell the item for $50.").with_inputs("message_content", "is_buyer"),
-        #dspy.Example(message_content="It certainly won't sell for $100. Even considering the condition, the maximum I can compromise on is $150.", is_buyer = "False", extracted_price=150, reasoning="The seller rejects the buyer's offer of $100 and proposes $150 as his minimum negotiable price.").with_inputs("message_content", "is_buyer"),
-        #dspy.Example(message_content="$1600 would be too low . montclaire is a very up and comming neighborhood . utilities are cheaper there due to the prevailing winds .", is_buyer = "False", extracted_price="None", reasoning="The seller rejects the buyer's proposed offer of $1,600 as too low, but has not offered the price he is seeking.").with_inputs("message_content", "is_buyer"),
-        #dspy.Example(message_content="well there are a lot of aspects to this car ! it is running in great condition and is basically new . it has 10 , 000 miles on the baby !", is_buyer = "False", extracted_price="None", reasoning="The seller mentions the condition and mileage of the car they are selling, but not the price.").with_inputs("message_content", "is_buyer"),
-        #dspy.Example(message_content="This item was purchased three years ago. It is brand new, unopened, and undamaged.", is_buyer = "False", extracted_price="None", reasoning="The seller mentions the condition of the item and when it was purchased, but not the price.").with_inputs("message_content", "is_buyer"),
-        #dspy.Example(message_content="This shabby chic desk is made of solid wood in a Parisian style. Its dimensions are 17cm deep x 30cm wide x 30cm high.", is_buyer = "False", extracted_price="None", reasoning="The seller only describes the size of the item and does not mention the price.").with_inputs("message_content", "is_buyer"),
-        #dspy.Example(message_content="i could give a 100 discount", is_buyer = "False", extracted_price="None", reasoning="The seller only states the discount amount, but does not mention the actual price.").with_inputs("message_content", "is_buyer")
-
-        #dspy.Example(message_content="hey ! i can offer $150 for the credenza .", extracted_price=150, reasoning="The buyer states that he can buy the item for $150.").with_inputs("message_content"),
-        #dspy.Example(message_content="i do ! but since i'm a bargain shower i'd like to offer you thirty dollors.", extracted_price=30, reasoning="The buyer states in English, not in numbers, that he can buy the item for $30.").with_inputs("message_content"),
-        #dspy.Example(message_content="i see you are asking 1,100 but i am really on a budget , would you take 650 ?", extracted_price=650, reasoning="The buyer confirms that the seller has offered $1,100 and then offers $650.").with_inputs("message_content"),
-        #dspy.Example(message_content="$300 is too expensive. It's old and damaged, how about $250?", extracted_price=250, reasoning="The buyer rejects the seller's offer of $300 as too high and states his own asking price of $250.").with_inputs("message_content"),
-        dspy.Example(message_content="was hoping for something around 8,000 dollars but it's really no use to me so i'd be willing to go lower", extracted_price=8000, reasoning="The seller offers $8000, but says there's room for negotiation and is willing to go lower.").with_inputs("message_content"),
-        #dspy.Example(message_content="i would offer you fifty dollars", extracted_price=50, reasoning="The seller states in English, not in numbers, that he can sell the item for $50.").with_inputs("message_content"),
-        #dspy.Example(message_content="It certainly won't sell for $100. Even considering the condition, the maximum I can compromise on is $150.", extracted_price=150, reasoning="The seller rejects the buyer's offer of $100 and proposes $150 as his minimum negotiable price.").with_inputs("message_content"),
-        #dspy.Example(message_content="$1600 would be too low . montclaire is a very up and comming neighborhood . utilities are cheaper there due to the prevailing winds .", extracted_price="None", reasoning="The seller rejects the buyer's proposed offer of $1,600 as too low, but has not offered the price he is seeking.").with_inputs("message_content"),
-        dspy.Example(message_content="That's too low, but I can get it down to 5k.", extracted_price=5000, reasoning="The seller is offering a counter price. The k in 5k stands for thousand.").with_inputs("message_content"),
-        dspy.Example(message_content="I've seen that item on sale for $80.", extracted_price=80, reasoning="Buyers implicitly suggest their desired price by mentioning the price at other stores.").with_inputs("message_content"),
-        dspy.Example(message_content="This battery is $550 brand new. It has a large capacity and is very easy to use.", extracted_price=550, reasoning="The seller is implicitly communicating their asking price by mentioning the price when the item was new.").with_inputs("message_content"),
-        dspy.Example(message_content="Sorry, I don't have any money right now, so I can't give you more than $2,150.", extracted_price=2150, reasoning="Buyers communicate their maximum asking price with reasons").with_inputs("message_content")
-    ]
 
 class HumanAgent:
     """
     AgreeMate baseline negotiation system の Human Agent
     人間が買い手側と売り手側のどちらかのエージェントの役割を果たす場合の機能と抽象メソッドを定義します。
     """
-    _compiled_extractor = None
-
-    @classmethod
-    def _get_compiled_extractor(cls):
-        if cls._compiled_extractor is None:
-            from dspy.teleprompt import BootstrapFewShot
-
-            extractor = dspy.ChainOfThought(PriceExtractor)
-            train_examples = _create_train_examples()
-            
-            optimizer = BootstrapFewShot(max_bootstrapped_demos=5)
-            # コンパイルを実行
-            cls._compiled_extractor = optimizer.compile(student=extractor, trainset=train_examples)
-        return cls._compiled_extractor
 
     def __init__(
         self,
         strategy_name: str,
         target_price: float,
+        list_price: float,
         category: str,
         is_buyer: bool,
-        lm: dspy.LM,
+        item_info: dict[str, any],
     ):
-        """
-        negotiation agent を初期化する
-
-        Args:
-            strategy_name: STRATEGIES の戦略名
-            target_price: このエージェントの目標価格
-            category: 商品のカテゴリー (electronics, vehicles, etc)
-            is_buyer: buyer (True) であるか seller (False) であるか
-            lm: 応答生成のための DSPy 言語モデル 
-        """
         if strategy_name not in STRATEGIES:
             raise ValueError(f"Unknown strategy: {strategy_name}")
 
         self.strategy = STRATEGIES[strategy_name]
         self.category_context = CATEGORY_CONTEXT[category]
         self.target_price = target_price
+        self.list_price = list_price
         self.category = category
         self.is_buyer = is_buyer
         self.role = "buyer" if is_buyer else "seller"
-        self.lm = lm # 2025/7/15 追加
+        self.item_info = item_info # 2025/9/18 追加
+        self.min_price = target_price * 0.9
+        self.max_price = target_price * 1.1
 
         # 状態のトラッキング
         self.conversation_history = []
         self.price_history = []
+        self.partner_price_history = [] # 相手の価格の履歴
+        self.pertner_intent_history = [] # 相手のインテントの履歴
         self.last_action = None
-        self.current_price = None
+        self.partner_data = None
         self.num_turns = 0
+        
 
-        # すべてのモジュールで提供された言語モデルを使用するように DSPy を構成する
-        dspy.settings.configure(lm=lm)
+        # パーサー用
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.checkpoint = "archive/da_system/agents/parser/model/roberta_fold_1/checkpoint-82304"
+        self.parser = AutoModelForSequenceClassification.from_pretrained(self.checkpoint, num_labels=12)
+        self.tokenizer = AutoTokenizer.from_pretrained(self.checkpoint)
+    
+    def round_three_digit(self, price: float):
+        if price == 0.0:
+            return 0.0
+        exponent = math.floor(math.log10(abs(price)))
+        ndigit = 2 - exponent
+        return round(price, ndigit)
 
-        # predictor modules のセットアップ
-        self.price_extractor = dspy.ChainOfThought(PriceExtractor)
-        self.compiled_extractor =  self._get_compiled_extractor()
+    def min_price_select(self) -> float:
+        min_price = self.list_price * random.uniform(0.9, 0.5)
+        min_price = self.round_three_digit(min_price)
 
-    def update_state(self, message: Dict[str, str]) -> Dict:
+        return min_price
+    
+    def max_price_select(self) -> float:
+        max_price = self.target_price + ((self.list_price - self.target_price) * random.uniform(1.0, 0.3))
+        max_price = self.round_three_digit(max_price)
+        
+        # 最高価格が定価を超えてしまう場合には定価に修正
+        if max_price >= self.list_price:
+            max_price = self.list_price
+
+        return max_price
+
+    def compute_utility(self, final_price: float) -> float:
+        if self.is_buyer == True:
+            if final_price <= self.target_price:
+                return 1.0
+            elif final_price >= self.max_price:
+                return 0.0
+            else:
+                final_diff = self.max_price - final_price
+                target_diff = self.max_price - self.target_price
+                utility = final_diff / target_diff
+                return utility
+        else:
+            if final_price >= self.target_price:
+                return 1.0
+            elif final_price <= self.min_price:
+                return 0.0
+            else:
+                final_diff = final_price - self.min_price
+                target_diff = self.target_price - self.min_price
+                utility = final_diff / target_diff
+                return utility
+            
+    def parse_dialogue(self, text):
+        parser = self.parser.to(self.device)
+        with torch.no_grad():
+            parser.eval()
+            pre_text = (self.conversation_history[-1])['content'] if self.conversation_history else "[PAD]"
+            inputs = self.tokenizer(pre_text, text, max_length=512, truncation=True, return_tensors="pt")
+            inputs = {key: tensor.to(self.device) for key, tensor in inputs.items()}
+            outputs = parser(**inputs)
+
+            logits = outputs.logits # ロジットの取得
+            probabilities = softmax(logits, dim=1) # ロジットをソフトマックス関数で確率に変換
+            predicted_class = torch.argmax(probabilities, dim=1).item() # 確率が最も高いものを推定ラベルとして決定
+            predicted_class = parser.config.id2label[predicted_class] # ラベル番号をダイアログアクトに変換
+
+        self.num_turns += 1 # ターンを一つ進める
+
+        return predicted_class
+
+    def update_state(self, message: Dict[str, str], extractor) -> Dict:
         """
         LLM extraction を使用して交渉状態を更新する
         StateExtractor を使用して, メッセージから構造化された情報を取得する
@@ -122,52 +128,89 @@ class HumanAgent:
         if not isinstance(message, dict) or 'role' not in message or 'content' not in message:
             raise ValueError("Invalid message format")
 
-        # LLM を使用して構造化された情報を抽出する
-        extraction = self.compiled_extractor(
-            message_content=message['content'],
-            is_buyer=self.is_buyer
-        )
+        # action 状態を更新する
+        # 人間が交渉を受け入れたり断ったりする時はacceptかrejectと入力する
+        if message['content'] == "accept":
+            self.last_action = "accept"
+        elif message['content'] == "reject":
+            self.last_action = "reject"
+        else:
+            self.last_action = self.parse_dialogue(message['content'])
+        
+        # 相手のインテントが価格交渉に関するものの場合, 価格を抽出
+        price = None
+        if self.last_action in ["init-price", "counter-price", "insist"]:
+            with dspy.context(lm=extractor.lm):
+                price_prediction = extractor.compiled_extractor(
+                    message_content=self.partner_data['content']
+                )
+            price = price_prediction["extracted_price"]
+            if price == None:
+                self.last_action = "unknown"
+            elif (not self.price_history) and (not self.partner_price_history) and (self.last_action in ["counter-price", "insist"]):
+                self.last_action = "init-price"
+            elif (self.price_history) and (self.price_history[-1] == price) and (self.last_action in ["init-price", "counter-price"]):
+                self.last_action = "insist"
+            elif (self.partner_price_history or self.price_history) and (self.last_action == "init-price"):
+                self.last_action = "counter-price"
+
+        # 新しい価格が検出されたら, 価格の状態を更新する
+        if price is not None:
+            self.price_history.append(price)
+    
+        message.update({
+            "price": price,
+            "intent": self.last_action,
+        })
 
         # 会話状態を更新する
         self.conversation_history.append(message)
         self.num_turns += 1
 
-        # 新しい価格が検出されたら, 価格の状態を更新する
-        if extraction.extracted_price is not None:
-            self.current_price = extraction.extracted_price
-            self.price_history.append(extraction.extracted_price)
-        self.lm.inspect_history(n=1) ###############################
-
-        # action 状態を更新する
-        # 人間が交渉を受け入れたり断ったりする時はacceptかrejectと入力する
-        if message["content"] == "accept":
-            self.last_action = "accept"
-        elif message["content"] == "reject":
-            self.last_action = "reject"
-        else:
-            self.last_action = "none" #とりあえずnoneにしておく, 後でDLベースパーサーによって判定してもらうよう変更する
-
-        # 必要に応じてデバッグ情報に抽出理由を追加する
-        if hasattr(self, 'extraction_history'):
-            self.extraction_history.append(extraction.reasoning)
-
-        message.update({
-            "price": extraction.extracted_price,
-            "intent": self.last_action,
-        })
-
         return message
 
-    def step(self, partner_data) -> Dict[str, str]:
+    def step(self, partner_data, extractor) -> Dict[str, str]:
         """
         交渉ステップを実行する: つまり行動を予測し, 応答を生成する
 
         Returns:
             応答メッセージのコンテンツと役割を含む辞書
         """
+        print(f"{self.role}'s turn") ########
+        # パートナーのデータを更新
+        self.partner_data = partner_data
+
+        # パーサー
+        # まずはここで相手の発言のインテントを予測し, 必要であれば価格を抽出する
+        if self.partner_data is not None:
+            self.partner_data['intent'] = self.parse_dialogue(self.partner_data['content'])
+            self.partner_data['price'] = None
+
+            # 相手のインテントが価格交渉に関するものの場合, 価格を抽出
+            if self.partner_data['intent'] in ["init-price", "counter-price", "insist"]:
+                with dspy.context(lm=extractor.lm):
+                    price_prediction = extractor.compiled_extractor(
+                        message_content=self.partner_data['content']
+                    )
+                self.partner_data['price'] = price_prediction["extracted_price"]
+                if self.partner_data['price'] == None:
+                    self.partner_data['intent'] = "unknown"
+                elif (not self.price_history) and (not self.partner_price_history) and (self.partner_data['intent'] in ["counter-price", "insist"]):
+                    self.partner_data['intent'] = "init-price"
+                elif (self.partner_price_history) and (self.partner_price_history[-1] == self.partner_data['price']) and (self.partner_data['intent'] in ["init-price", "counter-price"]):
+                    self.partner_data['intent'] = "insist"
+                elif (self.partner_price_history or self.price_history) and (self.partner_data['intent'] == "init-price"):
+                    self.partner_data['intent'] = "counter-price"
+
+            # パートナー情報の更新
+            self.conversation_history.append(self.partner_data)
+            self.pertner_intent_history.append(self.partner_data['intent'])
+            if self.partner_data['price'] != None:
+                self.partner_price_history.append(self.partner_data['price'])
+            print(f"parser result: {self.partner_data['intent']}(price={self.partner_data['price']})") ########
+
 
         # 自然言語の応答を生成する
-
         user_response = input(f"Your turn! Please your message as a {self.role}: ")
 
         # メッセージを作成する
@@ -177,82 +220,7 @@ class HumanAgent:
         }
 
         # 自分自身の状態を更新する
-        message = self.update_state(message)
+        message = self.update_state(message, extractor)
 
         return message
 
-def test_extractor():
-    import pandas as pd
-    """PriceExtractor の機能をテストする"""
-    baseline_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    agreemate_dir = os.path.dirname(baseline_dir)
-    pretrained_dir = os.path.join(agreemate_dir, "models", "pretrained")
-    
-    test_lm = dspy.LM(
-        model="ollama/llama3.1",
-        provider="ollama",
-        cache_dir=pretrained_dir,
-    )
-
-    agent = HumanAgent(
-        strategy_name="free",
-        target_price=100.0,
-        category="electronics",
-        is_buyer=True,
-        lm=test_lm,
-    )
-
-    df = pd.read_csv('archive/da_system/agents/parser/data/cb_dataset_0~999.csv')
-    df = df.drop("Unnamed: 0", axis=1)
-    df = df.head(1000)
-    df = df[df["meta_text"].isin(["counter-price", "init-price", "insist"])]
-    print(df)
-
-    df_text = df["text"]
-
-    compiled = []
-    nomal = []
-
-    for i, item in enumerate(df_text):
-        print(i)
-        compiled_extraction = agent.compiled_extractor(
-            message_content=item,
-            #is_buyer=True
-            #is_buyer=False
-        )
-        extraction = agent.price_extractor(
-            message_content=item,
-            #is_buyer=True
-            #is_buyer=False
-        )
-        compiled.append(compiled_extraction.extracted_price)
-        nomal.append(extraction.extracted_price)
-
-    df["compiled"] = compiled
-    df["nomal"] = nomal
-    df.to_csv('output.csv', index=False, encoding='utf-8')
-
-
-"""
-    while True:
-        user_input = input("入力(exitで終了): ")
-
-        if user_input == "exit":
-            break
-        else:
-            compiled_extraction = agent.compiled_extractor(
-                message_content=user_input,
-                is_buyer=True
-                #is_buyer=False
-            )
-            extraction = agent.price_extractor(
-                message_content=user_input,
-                is_buyer=True
-                #is_buyer=False
-            )
-            print(f"compiled → price: {compiled_extraction.extracted_price}, reason: {compiled_extraction.reasoning}")
-            print(f"normal → price: {extraction.extracted_price}, reason: {extraction.reasoning}")
-"""
-
-if __name__ == "__main__":
-    agent = test_extractor()

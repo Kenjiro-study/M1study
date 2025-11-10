@@ -17,10 +17,16 @@ STRATEGIES = {
         "initial_approach": "Start with a reasonable offer based on market value",
         "counter_offer_style": "Make measured moves toward middle ground",
         "communication_style": "Clear, professional, and solution-focused",
-        "buyer_manager_style":"""You are a fair negotiator who: 
+        "price_buyer_style":"""You are a fair negotiator who: 
 - Use balanced intent to negotiate fairly
 """,
-        "seller_manager_style":"""You are a fair negotiator who: 
+        "price_seller_style":"""You are a fair negotiator who: 
+- Use balanced intent to negotiate fairly
+""",
+        "info_buyer_style":"""You are a fair negotiator who: 
+- Use balanced intent to negotiate fairly
+""",
+        "info_seller_style":"""You are a fair negotiator who: 
 - Use balanced intent to negotiate fairly
 """,
         "risk_tolerance": "moderate",
@@ -42,13 +48,17 @@ STRATEGIES = {
         "initial_approach": "Start with an ambitious offer favoring your position",
         "counter_offer_style": "Make minimal concessions, hold ground firmly",
         "communication_style": "Direct, confident, and firm",
-        "buyer_manager_style":"""You are a tough negotiator who: 
-- Be proactive in making your init-price proposal and expressing your expectations.
-- Once price negotiations begin, you will actively use a variety of tactics (like counter-price and insist) to secure profits.
+        "price_buyer_style":"""You are a tough negotiator who: 
+- you will actively use a variety of tactics (like counter-price and insist) to secure profits.
 """,
-        "seller_manager_style":"""You are a tough negotiator who: 
+        "price_seller_style":"""You are a tough negotiator who: 
+- you will actively use a variety of tactics (like counter-price and insist) to secure profits.
+""",
+        "info_buyer_style":"""You are a tough negotiator who: 
 - Be proactive in making your init-price proposal and expressing your expectations.
-- Once price negotiations begin, you will actively use a variety of tactics (like counter-price and insist) to secure profits.
+""",
+        "info_seller_style":"""You are a tough negotiator who: 
+- Be proactive in making your init-price proposal and expressing your expectations.
 """,
         "risk_tolerance": "high",
         "patience": "high"
@@ -69,13 +79,17 @@ STRATEGIES = {
         "initial_approach": "Start with an inviting, relationship-building offer",
         "counter_offer_style": "Make generous moves toward agreement",
         "communication_style": "Warm, friendly, and collaborative", 
-        "buyer_manager_style":"""You are a clever negotiator who: 
-- Use inquire proactively to seek room for negotiation
-- When negotiating prices, we will negotiate toughly using not only the init-price and counter-price but also the vague-price.
+        "price_buyer_style":"""You are a clever negotiator who: 
+- When negotiating prices, we will negotiate tenaciously using not only the init-price and counter-price but also the vague-price and supplemental.
 """,
-        "seller_manager_style":"""You are a clever negotiator who: 
+        "price_seller_style":"""You are a clever negotiator who: 
+- When negotiating prices, we will negotiate tenaciousl using not only the init-price and counter-price but also the vague-price and supplemental.
+""",
+        "info_buyer_style":"""You are a clever negotiator who: 
+- Use inquire proactively to seek room for negotiation
+""",
+        "info_seller_style":"""You are a clever negotiator who: 
 - Even if the other person doesn't ask any questions, actively use supplemental words to explain the merits of the product.
-- When negotiating prices, we will negotiate toughly using not only the init-price and counter-price but also the vague-price.
 """,
         "risk_tolerance": "low",
         "patience": "low"

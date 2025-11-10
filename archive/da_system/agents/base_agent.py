@@ -1,5 +1,5 @@
 # base_agent.py
-import os, dspy, re
+import os, dspy, re, math
 
 from ..strategies import STRATEGIES, CATEGORY_CONTEXT
 from .extractor import PriceExtractor
@@ -11,21 +11,18 @@ from torch.nn.functional import softmax
 
 PRICE_RELATED_INTENTS = ["init-price", "counter-price", "insist"]
 
-class NegotiationManager(dspy.Signature):
-    """As a price negotiation agent, considering the dialogue history, the partner's last utterance, roles, and your own strategy, select the single most strategic "intent" to take next.
+class PriceNegotiationManager(dspy.Signature):
+    """As a price negotiation agent, considering the dialogue history, the partner's last utterance, roles, and your own strategy, select the single most strategic "intent" to take next. Currently in the price negotiation phase.
 
     [THOUGHT PROCESS]
     1.  First, analyze the current dialogue history and the partner's most recent `partner_intent`.
     2.  Next, consider your own `agent_role` (e.g., Buyer or Seller) and `agent_strategy`.
     3.  Finally, strictly follow the "Intent Selection Criteria" below to select the single most appropriate intent label.
     
-    [INTENT SELECTION CRITERIA (top priorityy)]
-    - inquire: Select this when you need to ask about details such as the condition of the product.
-    - init-price: Select to make the *first* price proposal.
-        (Condition: The `dialogue_history` and `partner_intent` must not yet contain `init-price`, `counter-price`, or `insist`.)
+    [INTENT SELECTION CRITERIA (top priority)]
+    - counter-price: Select to propose a *different* price after the partner has proposed an `init-price` or `counter-price`.
     - vague-price: Select to negotiate indirectly without stating a specific price (e.g., "That's a bit high...").
         (Condition: Select this *only if* concrete price negotiation is deadlocked.)
-    - counter-price: Select to propose a *different* price after the partner has proposed an `init-price` or `counter-price`.
     - insist: Select to re-state your *previous price* after the partner has made a `counter-price`. 
     - supplemental: Select to provide additional information (e.g., product benefits) when the partner's intent was *not* `inquire`.
     - thanks: Select to express your gratitude for reaching an agreement.
@@ -41,9 +38,52 @@ class NegotiationManager(dspy.Signature):
 
     # --- 出力フィールド ---
     next_intent = dspy.OutputField(
-        desc="The intent label for the agent's next action. Choose exactly one from the following 7 types: "
-             "inquire, init-price, vague-price, counter-price, insist, supplemental, thanks"
+        desc="The intent label for the agent's next action. Choose exactly one from the following 4 types: "
+             "counter-price, vague-price, insist, supplemental, thanks"
     )
+
+class InfoNegotiationManager(dspy.Signature):
+    """As a price negotiation agent, considering the dialogue history, the partner's last utterance, roles, and your own strategy, select the single most strategic "intent" to take next. Currently in the information exchange phase.
+
+    [THOUGHT PROCESS]
+    1.  First, analyze the current dialogue history and the partner's most recent `partner_intent`.
+    2.  Next, consider your own `agent_role` (e.g., Buyer or Seller) and `agent_strategy`.
+    3.  Finally, strictly follow the "Intent Selection Criteria" below to select the single most appropriate intent label.
+    
+    [INTENT SELECTION CRITERIA (top priorityy)]
+    - inquire: Select this when you need to ask about details such as the condition of the product.
+    - init-price: Select to make the *first* price proposal.
+    - supplemental: Select to provide additional information (e.g., product benefits) when the partner's intent was *not* `inquire`."""
+    
+    # --- 入力フィールド ---
+    dialogue_history = dspy.InputField(desc="The past dialogue history with intent labels for each utterance.")
+    partner_utterance = dspy.InputField(desc="The partner's most recent utterance to respond to.")
+    partner_intent = dspy.InputField(desc="The intent label of the partner's most recent utterance.")
+    partner_role = dspy.InputField(desc="The role of the partner (e.g., Buyer, Seller).")
+    agent_role = dspy.InputField(desc="Your role (e.g., Buyer, Seller).")
+    agent_strategy = dspy.InputField(desc="Your strategy for selecting an intent. This is a guideline; the 'INTENT SELECTION CRITERIA' above take precedence.")
+
+    # --- 出力フィールド ---
+    next_intent = dspy.OutputField(
+        desc="The intent label for the agent's next action. Choose exactly one from the following 3 types: "
+             "inquire, init-price, supplemental"
+    )
+
+#class AddPriceInfo(dspy.Signature):
+    """Change `response` to a negotiation statement asking for the price shown in `price`.
+    """
+    # --- 入力フィールド ---
+    #response = dspy.InputField(desc="Sentences to be corrected")
+    #price = dspy.InputField(desc="The price you want to include in the response")
+
+    # --- 出力フィールド ---
+    #revised_response = dspy.OutputField(desc="A revised response with the correct price information")
+
+class NegotiationPhase:
+    GREETING = "GREETING"                   # 挨拶フェーズ
+    INFO_EXCHANGE = "INFO_EXCHANGE"         # 情報交換フェーズ
+    INIT_PRICE = "INIT_PRICE"               # 価格提案フェーズ
+    PRICE_NEGOTIATION = "PRICE_NEGOTIATION" # 価格交渉フェーズ
 
 class BaseAgent:
     """
@@ -92,6 +132,7 @@ class BaseAgent:
         self.last_action = None
         self.partner_data = None # 2025/9/17 追加
         self.num_turns = 0
+        self.current_phase = "" # 2025/10/30 追加
         
 
         # パーサー用
@@ -101,10 +142,19 @@ class BaseAgent:
         self.tokenizer = AutoTokenizer.from_pretrained(self.checkpoint)
 
         # predictor modules のセットアップ
-        self.intent_predictor = dspy.Predict(NegotiationManager)
+        self.price_intent_predictor = dspy.Predict(PriceNegotiationManager)
+        self.info_intent_predictor = dspy.Predict(InfoNegotiationManager)
+        #self.response_modifier = dspy.Predict(AddPriceInfo)
 
         # すべてのモジュールで提供された言語モデルを使用するように DSPy を構成する
         #dspy.settings.configure(lm=lm)
+    
+    def round_three_digit(self, price: float):
+        if price == 0.0:
+            return 0.0
+        exponent = math.floor(math.log10(abs(price)))
+        ndigit = 2 - exponent
+        return round(price, ndigit)
 
     def update_state(self, message: dict[str, str]) -> dict:
         """
@@ -149,6 +199,39 @@ class BaseAgent:
         self.num_turns += 1 # ターンを一つ進める
 
         return predicted_class
+
+    def update_negotiation_phase(self):
+        # 0 or 1ターン目で相手のintentがintroの場合、GREETINGフェーズに移動
+        if self.num_turns == 0 or (self.num_turns == 1 and self.partner_data and self.partner_data['intent'] != "init-price"):
+            self.current_phase = NegotiationPhase.GREETING
+            return
+        
+        # 挨拶(intro)が終わったら INFO_EXCHANGEフェーズに移動
+        if self.partner_data['intent'] != "init-price" and (self.last_action == "intro" or self.num_turns == 2 or self.num_turns == 3) :
+            self.current_phase = NegotiationPhase.INFO_EXCHANGE
+            return
+        
+        # 価格提案がまだない場合のみINIT_PRICEに遷移できる
+        if (not self.partner_price_history) and (not self.price_history):
+            # fairの場合, 遅くとも会話4往復目からINIT-PRICEフェーズに移動
+            if self.strategy["name"] == "fair" and (self.num_turns == 6 or self.num_turns == 7):
+                self.current_phase = NegotiationPhase.INIT_PRICE
+                return
+            # utilityの場合, 遅くとも会話3往復目からINIT-PRICEフェーズに移動
+            elif self.strategy["name"] == "utility" and (self.num_turns == 4 or self.num_turns == 5):
+                self.current_phase = NegotiationPhase.INIT_PRICE
+                return
+            # lengthの場合, 遅くとも会話5往復目からINIT-PRICEフェーズに移動
+            elif self.strategy["name"] == "length" and (self.num_turns == 6 or self.num_turns == 9):
+                self.current_phase = NegotiationPhase.INIT_PRICE
+                return
+
+        # init-priceを検知した場合, PRICE_NEGOTIATIONフェーズに移動
+        if self.partner_data['intent'] == "init-price" or self.last_action == "init-price":
+            self.current_phase = NegotiationPhase.PRICE_NEGOTIATION
+            return
+
+        return
     
     def get_manager_context(self) -> dict:
         """予測の context を取得する"""
@@ -171,7 +254,7 @@ class BaseAgent:
 
     def predict_action_manager(self) -> dict:
         """交渉における次の intent を予測する"""
-        prediction = self.intent_predictor(**self.get_manager_context())
+        prediction = self.price_intent_predictor(**self.get_manager_context())
         #self.lm.inspect_history(n=1) ###############################
         return {
             "rationale": prediction.rationale,
@@ -179,26 +262,19 @@ class BaseAgent:
         }
     
     def clean_generator_output(self, text: str) -> str:
-    
-        # 1. \" を " に置換
+        # \" を " に置換
         cleaned = text.replace('\"', '"')
-    
-        # 2. "### Completed:" や "###" などのストップマーカーで分割し、本体部分を取得
-        #    複数のマーカーに対応
-        stop_markers = ["### Completed:", "###", "Completed:"]
+        # "### Completed:" や "###" などのストップマーカーで分割し、本体部分を取得
+        stop_markers = ["### Completed:", "###", "Completed:", "[[ ##"]
         for marker in stop_markers:
             if marker in cleaned:
                 cleaned = cleaned.split(marker)[0]
-            
-        # 3. 前後の空白文字（\n など）を削除
+        # 前後の空白文字(\n 等)を削除
         cleaned = cleaned.strip()
-    
-        # 4. 全体が " で囲まれている場合、それを削除
-        #    例: "I appreciate..." -> I appreciate...
+        # 全体が"で囲まれている場合、"を削除(例: "I appreciate〜" -> I appreciate〜)
         if cleaned.startswith('"') and cleaned.endswith('"'):
             cleaned = cleaned.strip('"')
-        
-        # 5. 再度、前後の空白を削除（" を削除した後に残る可能性があるため）
+        # 5. 再度、前後の空白を削除
         cleaned = cleaned.strip()
     
         return cleaned
@@ -226,11 +302,13 @@ class BaseAgent:
         if intent not in PRICE_RELATED_INTENTS:
             item_prompt = re.sub(r"List Price: \d+\.\d+\n?", "", item_prompt, flags=re.IGNORECASE)
         
+        offer_price = f"${price}" ######
+        
         context = {
             "item_information": item_prompt,
             "conversation_history": history_text,
             "partner_utterance": self.partner_data,
-            "offer_price": price
+            "offer_price": offer_price #######
         }
 
         return context
@@ -250,6 +328,7 @@ class BaseAgent:
         # まずはここで相手の発言のインテントを予測し, 必要であれば価格を抽出する
         if self.partner_data is not None:
             self.partner_data['intent'] = self.parse_partner_dialogue()
+            self.partner_data['price'] = None
 
             # 相手のインテントが価格交渉に関するものの場合, 価格を抽出
             if self.partner_data['intent'] in ["init-price", "counter-price", "insist"]:

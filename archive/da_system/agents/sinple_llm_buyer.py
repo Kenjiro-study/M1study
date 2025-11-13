@@ -1,6 +1,6 @@
 # simple_llm_buyer.py
 import os, dspy, re, math, random
-from typing import Optional
+from typing import Optional, Literal
 
 from ..strategies import STRATEGIES, CATEGORY_CONTEXT
 from .extractor import PriceExtractor
@@ -9,6 +9,8 @@ from transformers import AutoTokenizer
 from transformers import AutoModelForSequenceClassification
 import torch
 from torch.nn.functional import softmax
+
+StatusType = Literal['ACCEPTANCE', 'REJECTION', 'CONTINUE']
 
 # 交渉中に自然言語の応答を生成する
 class NegotiationResponse(dspy.Signature):
@@ -70,9 +72,9 @@ class NegotiationJudge(dspy.Signature):
     """
 
     buyer_latest_message: str = dspy.InputField(desc="Buyer's latest message.")
-    seller_latest_message: str = dspy.InputField(desc="Seller's latest message.(If none, assume ’No response yet’")
+    seller_latest_message: str = dspy.InputField(desc="Seller's latest message.(If none, assume ’No response yet’)")
 
-    status: str = dspy.OutputField(desc="Negotiation Status. Please output only a single word: ACCEPTANCE, REJECTION, or CONTINUE")
+    status: StatusType = dspy.OutputField(desc="Negotiation Status. Please output only a single word: ACCEPTANCE, REJECTION, or CONTINUE")
 
 class SinpleLLMBuyerAgent():
     """
@@ -112,7 +114,7 @@ class SinpleLLMBuyerAgent():
         # predictor modules のセットアップ
         self.response_predictor = dspy.Predict(NegotiationResponse)
         self.greeting_predictor = dspy.Predict(NegotiationGreeting)
-        self.status_judge = dspy.Predict(NegotiationJudge)
+        self.status_predictor = dspy.Predict(NegotiationJudge)
     
     def round_three_digit(self, price: float):
         if price == 0.0:
@@ -209,7 +211,7 @@ class SinpleLLMBuyerAgent():
         context = {
             "item_information": item_prompt,
             "conversation_history": history_text,
-            "partner_utterance": self.partner_data,
+            "partner_utterance": self.partner_data['content'],
             "budget": self.max_price,
             "target_price":  self.target_price
         }
@@ -246,7 +248,7 @@ class SinpleLLMBuyerAgent():
             "buyer_latest_message": buyer_latest_message,
             "seller_latest_message": self.partner_data['content']
         }
-        status_prediction = self.status_judge(**context)
+        status_prediction = self.status_predictor(**context)
         status_prediction['status'] = (status_prediction['status']).split('\n')[0].strip(" \n`")
 
         return status_prediction

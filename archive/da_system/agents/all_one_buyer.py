@@ -1,4 +1,4 @@
-# simple_llm_seller.py
+# simple_llm_buyer.py
 import os, dspy, re, math, random
 from typing import Optional, Literal
 
@@ -10,19 +10,41 @@ from transformers import AutoModelForSequenceClassification
 import torch
 from torch.nn.functional import softmax
 
+IntentType = Literal['intro', 'inquire', 'inform', 'init-price', 'counter-price', 'vague-price', 'insist', 'supplemental', 'thanks', 'agree', 'disagree']
 StatusType = Literal['ACCEPTANCE', 'REJECTION', 'CONTINUE']
+
+BUYER_INTENT_DEFINITION = """
+    - intro: Greetings and starting negotiations. Greet the seller briefly or express your interest in their product briefly.
+    - inquire: Questions about products and conditions. Briefly ask the seller specific questions about the item (e.g., condition, usage, accessories, shipping).
+    - inform: Providing information. Answer a question concisely from the seller. Provide the requested information clearly.
+    - supplemental: Additional information and conditions provided. Briefly provide supplementary information (e.g., your reason for wanting to buy, your budget, etc) to support your price or request. This is for justification, not a direct offer.
+    - init-price: First Price Offer. Concisely Make the *first* price proposal. Your response *must* include the `offer_price`.
+    - counter-price: Presenting a counter offer. Concisely Make a counter-offer in response to the seller. Your response *must* include the `offer_price`.
+    - insist: Stick to previous offer price. Re-state your previous `offer_price`. Hold your ground.
+    - vague-price: Vague price mentions. Negotiate the price concisely *without* making a specific offer. (e.g., 'Can you lower the price?', 'What's your best offer?'). Do *not* include an `offer_price`.
+    - disagree: Disagree with the partner's offer. Reject the seller's *current* offer or proposal, *but continue* the negotiation. (e.g., 'That price is still too high.').
+    - agree: Agree with the partner's offer. Explicitly accept the seller's *current* offer or price. This signals the price negotiation is over, but does not end the chat.
+    - thanks: Showing gratitude. A simple, polite expression of thanks during the negotiation. (e.g., 'Thank you.').
+"""
+
 
 # 交渉中に自然言語の応答を生成する
 class NegotiationResponse(dspy.Signature):
-    """You are a professional sales assistant tasked with selling a product. Your goal is to negotiate the best possible price for the product and close the transaction as close to your 'target_price' as possible.
-
+    """You are a professional negotiation assistant tasked with purchasing a product. Your goal is to negotiate the best possible price for the product and close the transaction as close to your 'target_price' as possible.
+    Analyze the partner's input, decide on the next strategy, and generate a response all at once in the following order:
+    1. Classify the partner's input ('partner_utterance') into 11 types of intents ('partner_intent')
+    2. Extract price information ('partner_price') from the partner's input ('partner_utterance').
+    3. Determine your next intent ('next_intent') based on 'conversation_history', 'partner_utterance', 'partner_intent', 'partner_role', and 'agent_role'.
+    4. If the intent requires a price offer('init-price', 'counter-price' and 'insist'), determine the offer price ('offer_price')
+    5. Generate a natural language response based on the atrategy based on determined intent('intent_definitions'), price('offer_price') and 'item_information', 'conversation_history', and 'partner_utterrance'.
+    
     [RESPONSE CONSTRAINTS]
-    - You must not sell below the 'minimum_price'.
+    - You must not exceed your 'budget', otherwise you should reject the offer and say you cannot afford it.
 
     [GOAL]
-    - Negotiate to sell the product at the highest possible price.
-    - Use effective negotiation strategies to maximize your profit.
-    - [IMPORTANT] You must not go below the "minimum_price." If you do, you must reject the offer and tell them you cannot go any lower.
+    - Negotiate to obtain the product at the lowest possible price.
+    - Use effective negotiation strategies to achieve the best deal.
+    - [IMPORTANT] You must not exceed your 'budget', otherwise you should reject the offer and say you cannot afford it. 
 
     [GUIDELINES]
     1. Keep your responses natural and conversational.
@@ -36,8 +58,32 @@ class NegotiationResponse(dspy.Signature):
     item_information: str = dspy.InputField(desc="Product name, category, list price, and detailed description for negotiation")
     conversation_history: str = dspy.InputField(desc="Previous chat history")
     partner_utterance: str = dspy.InputField(desc="The partner's statement to which you should respond.")
-    minimum_price: Optional[float] = dspy.InputField(desc="Your lowest trading price. Do not go below this minimum under any circumstances.")
+    partner_role = dspy.InputField(desc="The role of the partner (e.g., Buyer, Seller).")
+    agent_role = dspy.InputField(desc="Your role (e.g., Buyer, Seller).")
+    budget: Optional[float] = dspy.InputField(desc="Your budget. Do not exceed this budget under any circumstances.")
     target_price : Optional[float] = dspy.InputField(desc="Your target trading price")
+    intent_definitions : str = dspy.InputField(desc="Definitions of 11 types of intent and their strategic role")
+
+    # パーサー出力
+    partner_intent: IntentType = dspy.OutputField("Intent classification of the other person's input text (select from 11 specified types)")
+    partner_price: Optional[str] = dspy.OutputField("The price offered by the other party (or None if not available)")
+    # マネージャー出力
+    next_intent: IntentType = dspy.OutputField("Your next statement intent (select from 11 specified types) based on the conversation history, the other person's statements, and their intents")
+    offer_price: Optional[str] = dspy.OutputField("The next price you offer (only for init-price, counter-price, insist; otherwise None)")
+    # ジェネレーター出力
+    response: str = dspy.OutputField(desc="natural language response following strategy guidance")
+
+# 交渉中に自然言語の応答を生成する
+class NegotiationGreeting(dspy.Signature):
+    """You are a professional negotiation assistant aiming to purchase a product at the best possible price. Your task is to start the conversation naturally without revealing your role as a negotiation assistant. Please write a short and friendly message to the seller, following these GUIDELINES.
+
+    [GUIDELINES]
+    1. Expresses interest in the product and asks about the possibility of negotiating the price.
+    2. Sounds natural, polite, and engaging Avoid over-explaining-- just say "Hello" to start and smoothly lead into your interest.
+    3. Keep the message concise and focused on opening the negotiation.
+    """
+
+    item_information: str = dspy.InputField(desc="Product name, category, list price, and detailed description for negotiation")
 
     response: str = dspy.OutputField(desc="natural language response.")
 
@@ -57,15 +103,15 @@ class NegotiationJudge(dspy.Signature):
     **Please output only a single word: ACCEPTANCE, REJECTION, or CONTINUE**
     """
 
-    buyer_latest_message: str = dspy.InputField(desc="Buyer's latest message.(If none, assume ’No response yet’)")
-    seller_latest_message: str = dspy.InputField(desc="Seller's latest message.")
+    buyer_latest_message: str = dspy.InputField(desc="Buyer's latest message.")
+    seller_latest_message: str = dspy.InputField(desc="Seller's latest message.(If none, assume ’No response yet’)")
 
     status: StatusType = dspy.OutputField(desc="Negotiation Status. Please output only a single word: ACCEPTANCE, REJECTION, or CONTINUE")
 
-class SinpleLLMSellerAgent():
+class AllinOneLLMBuyerAgent():
     """
-    AgreeMate baseline negotiation system の seller agent
-    seller-specific の交渉行動と戦略の解釈を実装する
+    AgreeMate baseline negotiation system の Base Agent
+    買い手側と売り手側の両方の子エージェントが実装するコア機能と抽象メソッドを定義します。
     """
 
     def __init__(
@@ -95,12 +141,13 @@ class SinpleLLMSellerAgent():
         self.partner_data = None # 2025/9/17 追加
         self.num_turns = 0
 
-        self.min_price = self.min_price_select()
+        self.max_price = self.max_price_select()
 
         # predictor modules のセットアップ
         self.response_predictor = dspy.Predict(NegotiationResponse)
+        self.greeting_predictor = dspy.Predict(NegotiationGreeting)
         self.status_predictor = dspy.Predict(NegotiationJudge)
-
+    
     def round_three_digit(self, price: float):
         if price == 0.0:
             return 0.0
@@ -108,23 +155,25 @@ class SinpleLLMSellerAgent():
         ndigit = 2 - exponent
         return round(price, ndigit)
     
-    def min_price_select(self) -> float:
-        """最低価格の設定"""
-        min_price = self.list_price * random.uniform(0.9, 0.5)        
-        min_price = self.round_three_digit(min_price)
+    def max_price_select(self) -> float:
+        """最高価格の設定"""
+        max_price = self.target_price + ((self.list_price - self.target_price) * random.uniform(1.0, 0.5))
+        max_price = self.round_three_digit(max_price)
+        
+        # 最高価格が定価を超えてしまう場合には定価に修正
+        if max_price >= self.list_price:
+            max_price = self.list_price
 
-        return min_price
-    
+        return max_price
+
     def compute_utility(self, final_price: float) -> float:
-        # 最終価格が目標価格より高ければ1.0
-        if final_price >= self.target_price:
+        if final_price <= self.target_price:
             return 1.0
-        # 最終価格が最低価格より低ければ0.0
-        elif final_price <= self.min_price:
+        elif final_price >= self.max_price:
             return 0.0
 
-        final_diff = final_price - self.min_price
-        target_diff = self.target_price - self.min_price
+        final_diff = self.max_price - final_price
+        target_diff = self.max_price - self.target_price
         utility = final_diff / target_diff
         return utility
 
@@ -195,8 +244,11 @@ class SinpleLLMSellerAgent():
             "item_information": item_prompt,
             "conversation_history": history_text,
             "partner_utterance": self.partner_data['content'],
-            "minimum_price": self.min_price,
-            "target_price":  self.target_price
+            "partner_role": self.partner_data['role'],
+            "agent_role": self.role,
+            "budget": self.max_price,
+            "target_price":  self.target_price,
+            "intent_definition": BUYER_INTENT_DEFINITION
         }
 
         response_prediction = self.response_predictor(**context)
@@ -204,10 +256,32 @@ class SinpleLLMSellerAgent():
 
         return response_prediction
     
-    def status_judge(self, seller_latest_message) -> dict:
+    def greeting_generation(self) -> dict:
+        """挨拶を生成する"""
+        from ..utils.model_loader import MODEL_CONFIGS
+
+        model_name = self.lm.model.split('/')[-1] # 2025/7/15 model_name → model に変更
+        template = MODEL_CONFIGS[model_name].prompt_template
+        item_prompt = template.format(
+            item_name = self.item_info["item_name"],
+            category = self.item_info["category"],
+            list_price = self.item_info["list_price"],
+            description = self.item_info["description"]
+        )
+
         context = {
-            "buyer_latest_message": self.partner_data['content'],
-            "seller_latest_message": seller_latest_message
+            "item_information": item_prompt,
+        }
+
+        response_prediction = self.greeting_predictor(**context)
+        response_prediction['response'] = self.clean_generator_output(response_prediction['response'])
+
+        return response_prediction
+    
+    def status_judge(self, buyer_latest_message) -> dict:
+        context = {
+            "buyer_latest_message": buyer_latest_message,
+            "seller_latest_message": self.partner_data['content']
         }
         status_prediction = self.status_predictor(**context)
         status_prediction['status'] = (status_prediction['status']).split('\n')[0].strip(" \n`")
@@ -235,7 +309,11 @@ class SinpleLLMSellerAgent():
         # ジェネレーター
         # 自然言語の応答を生成する
         with dspy.context(lm=self.lm):
-            response_prediction = self.response_generation()
+            if self.partner_data == None:
+                response_prediction = self.greeting_generation()
+            else:
+                response_prediction = self.response_generation()
+
             response = response_prediction['response']
 
             print(f"generator result: {response}") ########
@@ -269,16 +347,13 @@ class SinpleLLMSellerAgent():
         # 自分自身の状態を更新する
         message = self.update_state(message)
         return message
-
-
-
-
-def test_sinple_llm_seller():
-    """sinple_llm_seller の機能をテストする"""
+    
+def test_all_in_one_llm_buyer():
+    """sinple_llm_buyer の機能をテストする"""
     import os
 
     # test LM のセットアップ
-    baseline_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    baseline_dir = os.path.dirname(os.path.abspath(__file__))
     agreemate_dir = os.path.dirname(baseline_dir)
     pretrained_dir = os.path.join(agreemate_dir, "models", "pretrained")
 
@@ -288,40 +363,33 @@ def test_sinple_llm_seller():
         cache_dir=pretrained_dir,
     )
 
-    # seller agent の作成
-    seller = SinpleLLMSellerAgent(
+    # buyer agent の作成
+    buyer = AllinOneLLMBuyerAgent(
         strategy_name="length",
         target_price=100.0,
         category="electronics",
-        min_price=80.0,
-        initial_price=120.0,
+        max_price=120.0,
         lm=test_lm
     )
 
     # 初期化のテスト
-    assert seller.role == "seller"
-    assert seller.min_price == 80.0
-    assert seller.initial_price == 120.0
-
-    # 最初のオファーのテスト
-    response = seller.step()
-    assert response["role"] == "seller"
-    #assert "120" in response["content"] # should include initial price
+    assert buyer.role == "buyer"
+    assert buyer.max_price == 120.0
 
     # オファー処理のテスト
     message = {
-        "role": "buyer",
-        "content": "I can offer $90"
+        "role": "seller",
+        "content": "I can offer it for $150"
     }
-    seller.update_state(message)
+    buyer.update_state(message)
 
     # counter-offer 生成のテスト
-    response = seller.step()
-    assert response["role"] == "seller"
+    response = buyer.step()
+    assert response["role"] == "buyer"
     assert "content" in response
 
-    print("✓ All seller agent tests passed")
-    return seller
+    print("✓ All buyer agent tests passed")
+    return buyer
 
 if __name__ == "__main__":
-    seller = test_sinple_llm_seller()
+    buyer = test_all_in_one_llm_buyer()

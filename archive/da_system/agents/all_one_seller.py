@@ -10,12 +10,33 @@ from transformers import AutoModelForSequenceClassification
 import torch
 from torch.nn.functional import softmax
 
+IntentType = Literal['intro', 'inquire', 'inform', 'init-price', 'counter-price', 'vague-price', 'insist', 'supplemental', 'thanks', 'agree', 'disagree']
 StatusType = Literal['ACCEPTANCE', 'REJECTION', 'CONTINUE']
+
+SELLER_INTENT_DEFINITION = """
+    - intro: Greetings and starting negotiations. Greet the buyer briefly.
+    - inquire: Check if the buyer has any questions. Briefly ask the buyer if they have any specific questions about the product.
+    - inform: Providing information. Answer a question concisely from the buyer. Provide the requested information clearly.
+    - supplemental: Additional information and conditions provided. Briefly provide supplementary information (e.g., market price, item flaws, etc) to support your price or request. This is for justification, not a direct offer.
+    - init-price: First Price Offer. Concisely make the *first* price proposal. Your response *must* include the `offer_price`.
+    - counter-price: Presenting a counter offer. Concisely make a counter-offer in response to the buyer. Your response *must* include the `offer_price`.
+    - insist: Stick to previous offer price. Re-state your previous `offer_price`. Hold your ground.
+    - vague-price: Vague price mentions. Negotiate the price concisely *without* making a specific offer. (e.g., 'Can you lower the price?', 'What's your best offer?'). Do *not* include an `offer_price`.
+    - disagree: Disagree with the partner's offer. Reject the buyer's *current* offer or proposal, *but continue* the negotiation. (e.g., 'That price is still too low.').
+    - agree: Agree with the partner's offer. Explicitly accept the buyer's *current* offer or price. This signals the price negotiation is over, but does not end the chat.
+    - thanks: Showing gratitude. A simple, polite expression of thanks during the negotiation. (e.g., 'Thank you.').
+"""
 
 # 交渉中に自然言語の応答を生成する
 class NegotiationResponse(dspy.Signature):
     """You are a professional sales assistant tasked with selling a product. Your goal is to negotiate the best possible price for the product and close the transaction as close to your 'target_price' as possible.
-
+    Analyze the partner's input, decide on the next strategy, and generate a response all at once in the following order:
+    1. Classify the partner's input ('partner_utterance') into 11 types of intents ('partner_intent')
+    2. Extract price information ('partner_price') from the partner's input ('partner_utterance').
+    3. Determine your next intent ('next_intent') based on 'conversation_history', 'partner_utterance', 'partner_intent', 'partner_role', and 'agent_role'.
+    4. If the intent requires a price offer('init-price', 'counter-price' and 'insist'), determine the offer price ('offer_price')
+    5. Generate a natural language response based on the atrategy based on determined intent('intent_definitions'), price('offer_price') and 'item_information', 'conversation_history', and 'partner_utterrance'.
+    
     [RESPONSE CONSTRAINTS]
     - You must not sell below the 'minimum_price'.
 
@@ -36,10 +57,20 @@ class NegotiationResponse(dspy.Signature):
     item_information: str = dspy.InputField(desc="Product name, category, list price, and detailed description for negotiation")
     conversation_history: str = dspy.InputField(desc="Previous chat history")
     partner_utterance: str = dspy.InputField(desc="The partner's statement to which you should respond.")
+    partner_role = dspy.InputField(desc="The role of the partner (e.g., Buyer, Seller).")
+    agent_role = dspy.InputField(desc="Your role (e.g., Buyer, Seller).")
     minimum_price: Optional[float] = dspy.InputField(desc="Your lowest trading price. Do not go below this minimum under any circumstances.")
     target_price : Optional[float] = dspy.InputField(desc="Your target trading price")
+    intent_definitions : str = dspy.InputField(desc="Definitions of 11 types of intent and their strategic role")
 
-    response: str = dspy.OutputField(desc="natural language response.")
+    # パーサー出力
+    partner_intent: IntentType = dspy.OutputField("Intent classification of the other person's input text (select from 11 specified types)")
+    partner_price: Optional[str] = dspy.OutputField("The price offered by the other party (or None if not available)")
+    # マネージャー出力
+    next_intent: IntentType = dspy.OutputField("Your next statement intent (select from 11 specified types) based on the conversation history, the other person's statements, and their intents")
+    offer_price: Optional[str] = dspy.OutputField("The next price you offer (only for init-price, counter-price, insist; otherwise None)")
+    # ジェネレーター出力
+    response: str = dspy.OutputField(desc="natural language response following strategy guidance")
 
 class NegotiationJudge(dspy.Signature):
     """You are evaluating whether the buyer’s latest message indicates agreement to a deal. Determine the buyer’s intent based on their latest message. Choose one of the following statuses: 
@@ -195,10 +226,13 @@ class SinpleLLMSellerAgent():
             "item_information": item_prompt,
             "conversation_history": history_text,
             "partner_utterance": self.partner_data['content'],
+            "partner_role": self.partner_data['role'],
+            "agent_role": self.role,
             "minimum_price": self.min_price,
-            "target_price":  self.target_price
+            "target_price":  self.target_price,
+            "intent_definition": SELLER_INTENT_DEFINITION
         }
-
+            
         response_prediction = self.response_predictor(**context)
         response_prediction['response'] = self.clean_generator_output(response_prediction['response'])
 
@@ -269,8 +303,6 @@ class SinpleLLMSellerAgent():
         # 自分自身の状態を更新する
         message = self.update_state(message)
         return message
-
-
 
 
 def test_sinple_llm_seller():

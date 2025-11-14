@@ -16,6 +16,7 @@ class DSPyLMConfig:
     """DSPy 言語モデルの拡張構成"""
     base_config: ModelConfig
     strategy_name: Optional[str] = None
+    agent_name: Optional[str] = None
     role: Optional[str] = None # 'buyer' or 'seller'
 
     def get_context_config(self) -> Dict:
@@ -78,6 +79,7 @@ class DSPyManager:
         self,
         model_key: str,
         strategy_name: Optional[str] = None,
+        agent_name: Optional[str] = None,
         role: Optional[str] = None
     ) -> dspy.LM:
         """
@@ -95,7 +97,7 @@ class DSPyManager:
             raise ValueError(f"Unknown model: {model_key}")
 
         # context-specific key の作成
-        context_key = f"{model_key}_{strategy_name}_{role}"
+        context_key = f"{model_key}_{strategy_name}_{agent_name}_{role}"
 
         # まずキャッシュをチェックする
         if context_key in self.lm_cache:
@@ -105,6 +107,7 @@ class DSPyManager:
         config = DSPyLMConfig(
             base_config=self.model_configs[model_key],
             strategy_name=strategy_name,
+            agent_name=agent_name,
             role=role
         )
         self.context_configs[context_key] = config

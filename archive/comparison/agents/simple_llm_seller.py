@@ -62,7 +62,7 @@ class NegotiationJudge(dspy.Signature):
 
     status: StatusType = dspy.OutputField(desc="Negotiation Status. Please output only a single word: ACCEPTANCE, REJECTION, or CONTINUE")
 
-class SinpleLLMSellerAgent():
+class SimpleLLMSellerAgent():
     """
     AgreeMate baseline negotiation system の seller agent
     seller-specific の交渉行動と戦略の解釈を実装する
@@ -73,7 +73,6 @@ class SinpleLLMSellerAgent():
         target_price: float,
         list_price: float,
         category: str,
-        is_buyer: bool,
         item_info: dict[str, any],
         lm: dspy.LM,
     ):
@@ -81,8 +80,8 @@ class SinpleLLMSellerAgent():
         self.target_price = target_price
         self.list_price = list_price
         self.category = category
-        self.is_buyer = is_buyer
-        self.role = "buyer" if is_buyer else "seller"
+        self.is_buyer = False
+        self.role = "seller"
         self.item_info = item_info # 2025/9/18 追加
         self.lm = lm # 2025/7/15 追加
 
@@ -205,10 +204,17 @@ class SinpleLLMSellerAgent():
         return response_prediction
     
     def status_judge(self, seller_latest_message) -> dict:
-        context = {
-            "buyer_latest_message": self.partner_data['content'],
-            "seller_latest_message": seller_latest_message
-        }
+        if self.partner_data is None:
+            context = {
+                "buyer_latest_message": None,
+                "seller_latest_message": seller_latest_message
+            }
+        else:
+            context = {
+                "buyer_latest_message": self.partner_data['content'],
+                "seller_latest_message": seller_latest_message
+            }
+
         status_prediction = self.status_predictor(**context)
         status_prediction['status'] = (status_prediction['status']).split('\n')[0].strip(" \n`")
 
@@ -227,10 +233,11 @@ class SinpleLLMSellerAgent():
         self.partner_data = partner_data
 
         # パートナー情報の更新
-        self.conversation_history.append(self.partner_data)
-        self.pertner_intent_history.append(self.partner_data['intent'])
-        if self.partner_data['price'] != None:
-            self.partner_price_history.append(self.partner_data['price'])
+        if self.partner_data is not None:
+            self.conversation_history.append(self.partner_data)
+            self.pertner_intent_history.append(self.partner_data['intent'])
+            if self.partner_data['price'] != None:
+                self.partner_price_history.append(self.partner_data['price'])
 
         # ジェネレーター
         # 自然言語の応答を生成する
@@ -289,7 +296,7 @@ def test_sinple_llm_seller():
     )
 
     # seller agent の作成
-    seller = SinpleLLMSellerAgent(
+    seller = SimpleLLMSellerAgent(
         strategy_name="length",
         target_price=100.0,
         category="electronics",

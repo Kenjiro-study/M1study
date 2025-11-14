@@ -8,6 +8,7 @@ from pathlib import Path
 from datetime import datetime
 
 from .experiment_runner import ExperimentRunner
+from .subject_experiment_runner import SubjectExperimentRunner
 from .config import EXPERIMENT_CONFIGS, validate_config
 
 warnings.filterwarnings("ignore", message="Failed to use structured output format, falling back to JSON mode.")
@@ -63,14 +64,23 @@ async def run_experiment(args):
     logger.info(f"Running experiment '{exp_name}' in {exp_dir}")
 
     try:
-        # 実験を初期化して実行する
-        runner = ExperimentRunner(
-            config_name=args.config,
-            output_dir=str(exp_dir),
-            experiment_name=exp_name
-        )
+        if "subject_experiments" == args.config:
+            runner = SubjectExperimentRunner(
+                config_name=args.config,
+                output_dir=str(exp_dir),
+                experiment_name=exp_name,
+            )
+            results = await runner.run()
 
-        results = await runner.run()
+        else:    
+            # 実験を初期化して実行する
+            runner = ExperimentRunner(
+                config_name=args.config,
+                output_dir=str(exp_dir),
+                experiment_name=exp_name
+            )
+
+            results = await runner.run()
 
         # ログの completion summary
         logger.info("Experiment completed successfully:")

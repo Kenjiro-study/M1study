@@ -65,11 +65,11 @@ class NegotiationResponse(dspy.Signature):
     intent_definitions : str = dspy.InputField(desc="Definitions of 11 types of intent and their strategic role")
 
     # パーサー出力
-    partner_intent: IntentType = dspy.OutputField("Intent classification of the other person's input text (select from 11 specified types)")
-    partner_price: Optional[str] = dspy.OutputField("The price offered by the other party (or None if not available)")
+    partner_intent: IntentType = dspy.OutputField(desc="Intent classification of the other person's input text (select from 11 specified types)")
+    partner_price: Optional[str] = dspy.OutputField(desc="The price offered by the other party (or None if not available)")
     # マネージャー出力
-    next_intent: IntentType = dspy.OutputField("Your next statement intent (select from 11 specified types) based on the conversation history, the other person's statements, and their intents")
-    offer_price: Optional[str] = dspy.OutputField("The next price you offer (only for init-price, counter-price, insist; otherwise None)")
+    next_intent: IntentType = dspy.OutputField(desc="Your next statement intent (select from 11 specified types) based on the conversation history, the other person's statements, and their intents")
+    offer_price: Optional[str] = dspy.OutputField(desc="The next price you offer (only for init-price, counter-price, insist; otherwise None)")
     # ジェネレーター出力
     response: str = dspy.OutputField(desc="natural language response following strategy guidance")
 
@@ -119,7 +119,6 @@ class AllinOneLLMBuyerAgent():
         target_price: float,
         list_price: float,
         category: str,
-        is_buyer: bool,
         item_info: dict[str, any],
         lm: dspy.LM,
     ):
@@ -127,8 +126,8 @@ class AllinOneLLMBuyerAgent():
         self.target_price = target_price
         self.list_price = list_price
         self.category = category
-        self.is_buyer = is_buyer
-        self.role = "buyer" if is_buyer else "seller"
+        self.is_buyer = True
+        self.role = "buyer"
         self.item_info = item_info # 2025/9/18 追加
         self.lm = lm # 2025/7/15 追加
 
@@ -279,10 +278,16 @@ class AllinOneLLMBuyerAgent():
         return response_prediction
     
     def status_judge(self, buyer_latest_message) -> dict:
-        context = {
-            "buyer_latest_message": buyer_latest_message,
-            "seller_latest_message": self.partner_data['content']
-        }
+        if self.partner_data is None:
+            context = {
+                "buyer_latest_message": buyer_latest_message,
+                "seller_latest_message": None
+            }
+        else:
+            context = {
+                "buyer_latest_message": buyer_latest_message,
+                "seller_latest_message": self.partner_data['content']
+            }
         status_prediction = self.status_predictor(**context)
         status_prediction['status'] = (status_prediction['status']).split('\n')[0].strip(" \n`")
 
@@ -301,10 +306,11 @@ class AllinOneLLMBuyerAgent():
         self.partner_data = partner_data
 
         # パートナー情報の更新
-        self.conversation_history.append(self.partner_data)
-        self.pertner_intent_history.append(self.partner_data['intent'])
-        if self.partner_data['price'] != None:
-            self.partner_price_history.append(self.partner_data['price'])
+        if self.partner_data is not None:
+            self.conversation_history.append(self.partner_data)
+            self.pertner_intent_history.append(self.partner_data['intent'])
+            if self.partner_data['price'] != None:
+                self.partner_price_history.append(self.partner_data['price'])
 
         # ジェネレーター
         # 自然言語の応答を生成する

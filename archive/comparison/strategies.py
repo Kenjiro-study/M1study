@@ -98,8 +98,7 @@ STRATEGIES = {
     "free": {
         "name": "free",
         "description": """
-            You are a free negotiator who:
-            - This strategy is for human negotiators
+            You are a free negotiator
         """,
         "initial_approach": "free",
         "counter_offer_style": "free",

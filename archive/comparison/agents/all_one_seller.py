@@ -1,6 +1,7 @@
-# simple_llm_seller.py
+# all_one_seller.py
 import os, dspy, re, math, random
 from typing import Optional, Literal
+from pydantic import BaseModel, Field  #########
 
 from ..strategies import STRATEGIES, CATEGORY_CONTEXT
 from .extractor import PriceExtractor
@@ -26,6 +27,16 @@ SELLER_INTENT_DEFINITION = """
     - agree: Agree with the partner's offer. Explicitly accept the buyer's *current* offer or price. This signals the price negotiation is over, but does not end the chat.
     - thanks: Showing gratitude. A simple, polite expression of thanks during the negotiation. (e.g., 'Thank you.').
 """
+
+class NegotiationTurn(BaseModel):
+    """
+    LLMが1ターンで生成すべき全ての情報をまとめたPydanticモデル。
+    """
+    partner_intent: IntentType = Field(..., description="Intent classification of the other person's input text")
+    partner_price: Optional[str] = Field(..., description="The price offered by the other party (or None)")
+    next_intent: IntentType = Field(..., description="Your next strategic intent")
+    offer_price: Optional[str] = Field(..., description="The next price you offer (only for init-price, counter-price, insist; otherwise None)")
+    response: str = Field(..., description="Natural language response following strategy guidance")
 
 # 交渉中に自然言語の応答を生成する
 class NegotiationResponse(dspy.Signature):
@@ -63,14 +74,9 @@ class NegotiationResponse(dspy.Signature):
     target_price : Optional[float] = dspy.InputField(desc="Your target trading price")
     intent_definitions : str = dspy.InputField(desc="Definitions of 11 types of intent and their strategic role")
 
-    # パーサー出力
-    partner_intent: IntentType = dspy.OutputField(desc="Intent classification of the other person's input text (select from 11 specified types)")
-    partner_price: Optional[str] = dspy.OutputField(desc="The price offered by the other party (or None if not available)")
-    # マネージャー出力
-    next_intent: IntentType = dspy.OutputField(desc="Your next statement intent (select from 11 specified types) based on the conversation history, the other person's statements, and their intents")
-    offer_price: Optional[str] = dspy.OutputField(desc="The next price you offer (only for init-price, counter-price, insist; otherwise None)")
-    # ジェネレーター出力
-    response: str = dspy.OutputField(desc="natural language response following strategy guidance")
+    negotiation_turn: NegotiationTurn = dspy.OutputField(
+        desc="A structured object containing analysis, planning, and response."
+    )
 
 class NegotiationJudge(dspy.Signature):
     """You are evaluating whether the buyer’s latest message indicates agreement to a deal. Determine the buyer’s intent based on their latest message. Choose one of the following statuses: 
@@ -120,6 +126,7 @@ class AllinOneLLMSellerAgent():
         self.conversation_history = []
         self.price_history = [] # 自分の価格の履歴
         self.partner_price_history = [] # 相手の価格の履歴
+        self.all_price_history = [] # 自分と相手双方の価格の履歴
         self.pertner_intent_history = [] # 相手のインテントの履歴
         self.last_action = None
         self.partner_data = None # 2025/9/17 追加
@@ -176,6 +183,7 @@ class AllinOneLLMSellerAgent():
         # 新しい価格が検出されたら, 価格の状態を更新する
         if message['price'] is not None:
             self.price_history.append(message['price'])
+            self.all_price_history.append(message['price'])
         #self.lm.inspect_history(n=1) ###############################
 
         # action 状態を更新する
@@ -229,11 +237,19 @@ class AllinOneLLMSellerAgent():
             "agent_role": self.role,
             "minimum_price": self.min_price,
             "target_price":  self.target_price,
-            "intent_definition": SELLER_INTENT_DEFINITION
+            "intent_definitions": SELLER_INTENT_DEFINITION
         }
-            
         response_prediction = self.response_predictor(**context)
-        response_prediction['response'] = self.clean_generator_output(response_prediction['response'])
+        #dspy.settings.lm.inspect_history(n=1) ###############
+        turn_data: NegotiationTurn = response_prediction.negotiation_turn
+
+        response_prediction = {
+            "partner_intent": turn_data.partner_intent,
+            "partner_price": turn_data.partner_price,
+            "next_intent": turn_data.next_intent,
+            "offer_price": turn_data.offer_price,
+            "response": self.clean_generator_output(turn_data.response) # レスポンス文字列のクリーニングは継続
+        }
 
         return response_prediction
     
@@ -271,6 +287,7 @@ class AllinOneLLMSellerAgent():
             self.pertner_intent_history.append(self.partner_data['intent'])
             if self.partner_data['price'] != None:
                 self.partner_price_history.append(self.partner_data['price'])
+                self.all_price_history.append(self.partner_data['price'])
 
         # ジェネレーター
         # 自然言語の応答を生成する
@@ -288,6 +305,7 @@ class AllinOneLLMSellerAgent():
             intent = "reject"
         else:
             intent = "unknown"
+        print("status: ", status_prediction['status']) ########
 
         with dspy.context(lm=extractor.lm):
             price_prediction = extractor.compiled_extractor(
@@ -304,7 +322,7 @@ class AllinOneLLMSellerAgent():
 
         # acceptの場合, 交渉成立価格を記録に残すために自分が承諾したパートナーの最終提案価格を取得
         if message["intent"] == "accept":
-            message["price"] = self.partner_price_history[-1]
+            message["price"] = self.all_price_history[-1]
 
         # 自分自身の状態を更新する
         message = self.update_state(message)

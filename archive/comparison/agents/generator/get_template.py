@@ -40,9 +40,9 @@ def parse_title(tokens, kb):
 
 def extract_template(tokens, kb):
         tokens = parse_prices(tokens, kb) # 価格を検出してトークナイズ
-        print("tokens: ", tokens)
+        #print("tokens: ", tokens) #####
         tokens = ['{%s}' % token.canonical.type if is_price_token(token) else token for token in tokens] # 価格の部分を{price}のプレースホルダに置き換える
-        print("tokens: ", tokens)
+        #print("tokens: ", tokens) #####
         tokens = parse_title(tokens, kb) # 発話内における商品説明のタイトルにも出てくる単語を{title}のプレースホルダに置き換える
         return tokens
 

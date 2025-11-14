@@ -84,8 +84,10 @@ EXPERIMENT_CONFIGS: Dict[str, ExperimentConfig] = {
         max_turns=20,
         turn_timeout=30.0,
         models=["llama3.3:70b"],
-        strategies=["length", "fair", "utility"],
+        #strategies=["length", "fair", "utility"],
+        strategies=["fair"],
         agents=["search", "simple", "all", "damf"]
+        #agents=["all"]
     ),
 }
 

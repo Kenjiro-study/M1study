@@ -53,7 +53,7 @@ class SearchGenerator:
         loc = self.get_filter(used_templates=used_templates, **kwargs)
         if loc is None:
             return None
-        print("loc: ", loc)
+        #print("loc: ", loc) #####
 
         if isinstance(context, list):
             # リストにトークンごとに分けられている文を一つの文章に戻す

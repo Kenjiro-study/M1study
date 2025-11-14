@@ -42,6 +42,7 @@ class HumanAgent:
         self.conversation_history = []
         self.price_history = []
         self.partner_price_history = [] # 相手の価格の履歴
+        self.all_price_history = [] # 自分と相手双方の価格の履歴
         self.pertner_intent_history = [] # 相手のインテントの履歴
         self.last_action = None
         self.partner_data = None
@@ -128,17 +129,19 @@ class HumanAgent:
         if not isinstance(message, dict) or 'role' not in message or 'content' not in message:
             raise ValueError("Invalid message format")
 
+        price = None
+
         # action 状態を更新する
         # 人間が交渉を受け入れたり断ったりする時はacceptかrejectと入力する
         if message['content'] == "accept":
             self.last_action = "accept"
+            price = self.all_price_history[-1]
         elif message['content'] == "reject":
             self.last_action = "reject"
         else:
             self.last_action = self.parse_dialogue(message['content'])
         
         # 相手のインテントが価格交渉に関するものの場合, 価格を抽出
-        price = None
         if self.last_action in ["init-price", "counter-price", "insist"]:
             with dspy.context(lm=extractor.lm):
                 price_prediction = extractor.compiled_extractor(
@@ -157,6 +160,7 @@ class HumanAgent:
         # 新しい価格が検出されたら, 価格の状態を更新する
         if price is not None:
             self.price_history.append(price)
+            self.all_price_history.append(price)
     
         message.update({
             "price": price,
@@ -207,6 +211,7 @@ class HumanAgent:
             self.pertner_intent_history.append(self.partner_data['intent'])
             if self.partner_data['price'] != None:
                 self.partner_price_history.append(self.partner_data['price'])
+                self.all_price_history.append(self.partner_data['price'])
             print(f"parser result: {self.partner_data['intent']}(price={self.partner_data['price']})") ########
 
 

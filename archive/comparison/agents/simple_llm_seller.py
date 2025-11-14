@@ -89,6 +89,7 @@ class SimpleLLMSellerAgent():
         self.conversation_history = []
         self.price_history = [] # 自分の価格の履歴
         self.partner_price_history = [] # 相手の価格の履歴
+        self.all_price_history = [] # 自分と相手双方の価格の履歴
         self.pertner_intent_history = [] # 相手のインテントの履歴
         self.last_action = None
         self.partner_data = None # 2025/9/17 追加
@@ -145,6 +146,7 @@ class SimpleLLMSellerAgent():
         # 新しい価格が検出されたら, 価格の状態を更新する
         if message['price'] is not None:
             self.price_history.append(message['price'])
+            self.all_price_history.append(message['price'])
         #self.lm.inspect_history(n=1) ###############################
 
         # action 状態を更新する
@@ -238,6 +240,7 @@ class SimpleLLMSellerAgent():
             self.pertner_intent_history.append(self.partner_data['intent'])
             if self.partner_data['price'] != None:
                 self.partner_price_history.append(self.partner_data['price'])
+                self.all_price_history.append(self.partner_data['price'])
 
         # ジェネレーター
         # 自然言語の応答を生成する
@@ -255,6 +258,7 @@ class SimpleLLMSellerAgent():
             intent = "reject"
         else:
             intent = "unknown"
+        print("status: ", status_prediction['status']) ########
 
         with dspy.context(lm=extractor.lm):
             price_prediction = extractor.compiled_extractor(
@@ -271,14 +275,11 @@ class SimpleLLMSellerAgent():
 
         # acceptの場合, 交渉成立価格を記録に残すために自分が承諾したパートナーの最終提案価格を取得
         if message["intent"] == "accept":
-            message["price"] = self.partner_price_history[-1]
+            message["price"] = self.all_price_history[-1]
 
         # 自分自身の状態を更新する
         message = self.update_state(message)
         return message
-
-
-
 
 def test_sinple_llm_seller():
     """sinple_llm_seller の機能をテストする"""

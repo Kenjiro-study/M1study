@@ -93,11 +93,11 @@ class ExperimentTracker:
         self.state.scenarios_completed += 1
 
         # モデルペアの metrics を更新する
-        pair_key = f"{combination['buyer_model']}:{combination['buyer_strategy']}_{combination['seller_model']}:{combination['seller_strategy']}"
+        pair_key = f"{combination['buyer_model']}:{combination['buyer_strategy']}:{combination['buyer_agent']}_{combination['seller_model']}:{combination['seller_strategy']}:{combination['seller_agent']}"
         if pair_key not in self.model_pair_metrics:
             self.model_pair_metrics[pair_key] = ModelPairMetrics(
-                buyer_model= f"{combination['buyer_model']}:{combination['buyer_strategy']}",
-                seller_model= f"{combination['seller_model']}:{combination['seller_strategy']}"
+                buyer_model= f"{combination['buyer_model']}:{combination['buyer_strategy']}:{combination['buyer_agent']}",
+                seller_model= f"{combination['seller_model']}:{combination['seller_strategy']}:{combination['seller_agent']}"
             )
 
         pair_metrics = self.model_pair_metrics[pair_key]

@@ -170,7 +170,7 @@ class NegotiationRunner:
 
         elif config.seller_model == "human":
             buyer_lm = self.dspy_manager.get_lm(
-                config.buyer_model,
+                model_key=config.buyer_model,
                 strategy_name=config.buyer_strategy,
                 agent_name=config.buyer_agent,
                 role='buyer'

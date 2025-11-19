@@ -137,12 +137,12 @@ class HumanAgent:
         else:
             self.last_action = self.parse_dialogue(message['content'])
         
-        # 相手のインテントが価格交渉に関するものの場合, 価格を抽出
+        # 自分のインテントが価格交渉に関するものの場合, 価格を抽出
         price = None
         if self.last_action in ["init-price", "counter-price", "insist"]:
             with dspy.context(lm=extractor.lm):
                 price_prediction = extractor.compiled_extractor(
-                    message_content=self.partner_data['content']
+                    message_content=message['content']
                 )
             price = price_prediction["extracted_price"]
             if price == None:

@@ -13,8 +13,8 @@ done
 echo "Ollama server is ready!"
 
 # モデルをダウンロード（存在しない場合のみ）
-echo "Pulling llama3.1 model..."
-ollama pull llama3.1
+echo "Pulling llama3.3:70b model..."
+ollama pull llama3.3:70b
 
 # 初期化が完了したことを通知し、サーバープロセスをフォアグラウンドで待機させる
 echo "Initialization complete. Ollama server is running."

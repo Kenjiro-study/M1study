@@ -62,7 +62,7 @@ class NegotiationJudge(dspy.Signature):
 
     status: StatusType = dspy.OutputField(desc="Negotiation Status. Please output only a single word: ACCEPTANCE, REJECTION, or CONTINUE")
 
-class SinpleLLMSellerAgent():
+class SimpleLLMSellerAgent():
     """
     AgreeMate baseline negotiation system の seller agent
     seller-specific の交渉行動と戦略の解釈を実装する
@@ -73,7 +73,6 @@ class SinpleLLMSellerAgent():
         target_price: float,
         list_price: float,
         category: str,
-        is_buyer: bool,
         item_info: dict[str, any],
         lm: dspy.LM,
     ):
@@ -81,15 +80,17 @@ class SinpleLLMSellerAgent():
         self.target_price = target_price
         self.list_price = list_price
         self.category = category
-        self.is_buyer = is_buyer
-        self.role = "buyer" if is_buyer else "seller"
+        self.is_buyer = False
+        self.role = "seller"
         self.item_info = item_info # 2025/9/18 追加
         self.lm = lm # 2025/7/15 追加
+        self.strategy_name = "free"
 
         # 状態のトラッキング
         self.conversation_history = []
         self.price_history = [] # 自分の価格の履歴
         self.partner_price_history = [] # 相手の価格の履歴
+        self.all_price_history = [] # 自分と相手双方の価格の履歴
         self.pertner_intent_history = [] # 相手のインテントの履歴
         self.last_action = None
         self.partner_data = None # 2025/9/17 追加
@@ -146,6 +147,7 @@ class SinpleLLMSellerAgent():
         # 新しい価格が検出されたら, 価格の状態を更新する
         if message['price'] is not None:
             self.price_history.append(message['price'])
+            self.all_price_history.append(message['price'])
         #self.lm.inspect_history(n=1) ###############################
 
         # action 状態を更新する
@@ -205,10 +207,17 @@ class SinpleLLMSellerAgent():
         return response_prediction
     
     def status_judge(self, seller_latest_message) -> dict:
-        context = {
-            "buyer_latest_message": self.partner_data['content'],
-            "seller_latest_message": seller_latest_message
-        }
+        if self.partner_data is None:
+            context = {
+                "buyer_latest_message": None,
+                "seller_latest_message": seller_latest_message
+            }
+        else:
+            context = {
+                "buyer_latest_message": self.partner_data['content'],
+                "seller_latest_message": seller_latest_message
+            }
+
         status_prediction = self.status_predictor(**context)
         status_prediction['status'] = (status_prediction['status']).split('\n')[0].strip(" \n`")
 
@@ -227,10 +236,12 @@ class SinpleLLMSellerAgent():
         self.partner_data = partner_data
 
         # パートナー情報の更新
-        self.conversation_history.append(self.partner_data)
-        self.pertner_intent_history.append(self.partner_data['intent'])
-        if self.partner_data['price'] != None:
-            self.partner_price_history.append(self.partner_data['price'])
+        if self.partner_data is not None:
+            self.conversation_history.append(self.partner_data)
+            self.pertner_intent_history.append(self.partner_data['intent'])
+            if self.partner_data['price'] != None:
+                self.partner_price_history.append(self.partner_data['price'])
+                self.all_price_history.append(self.partner_data['price'])
 
         # ジェネレーター
         # 自然言語の応答を生成する
@@ -248,6 +259,7 @@ class SinpleLLMSellerAgent():
             intent = "reject"
         else:
             intent = "unknown"
+        print("status: ", status_prediction['status']) ########
 
         with dspy.context(lm=extractor.lm):
             price_prediction = extractor.compiled_extractor(
@@ -264,14 +276,11 @@ class SinpleLLMSellerAgent():
 
         # acceptの場合, 交渉成立価格を記録に残すために自分が承諾したパートナーの最終提案価格を取得
         if message["intent"] == "accept":
-            message["price"] = self.partner_price_history[-1]
+            message["price"] = self.all_price_history[-1]
 
         # 自分自身の状態を更新する
         message = self.update_state(message)
         return message
-
-
-
 
 def test_sinple_llm_seller():
     """sinple_llm_seller の機能をテストする"""
@@ -289,7 +298,7 @@ def test_sinple_llm_seller():
     )
 
     # seller agent の作成
-    seller = SinpleLLMSellerAgent(
+    seller = SimpleLLMSellerAgent(
         strategy_name="length",
         target_price=100.0,
         category="electronics",

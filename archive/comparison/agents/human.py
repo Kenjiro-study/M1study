@@ -35,8 +35,8 @@ class HumanAgent:
         self.is_buyer = is_buyer
         self.role = "buyer" if is_buyer else "seller"
         self.item_info = item_info # 2025/9/18 追加
-        self.min_price = target_price * 0.9
-        self.max_price = target_price * 1.1
+        self.min_price = self.min_price_select()
+        self.max_price = self.max_price_select()
 
         # 状態のトラッキング
         self.conversation_history = []
@@ -141,11 +141,11 @@ class HumanAgent:
         else:
             self.last_action = self.parse_dialogue(message['content'])
         
-        # 相手のインテントが価格交渉に関するものの場合, 価格を抽出
+        # 自分のインテントが価格交渉に関するものの場合, 価格を抽出
         if self.last_action in ["init-price", "counter-price", "insist"]:
             with dspy.context(lm=extractor.lm):
                 price_prediction = extractor.compiled_extractor(
-                    message_content=self.partner_data['content']
+                    message_content=message['content']
                 )
             price = price_prediction["extracted_price"]
             if price == None:
@@ -215,7 +215,7 @@ class HumanAgent:
             print(f"parser result: {self.partner_data['intent']}(price={self.partner_data['price']})") ########
 
 
-        # 自然言語の応答を生成する
+        # 自然言語の応答を入力する
         user_response = input(f"Your turn! Please your message as a {self.role}: ")
 
         # メッセージを作成する

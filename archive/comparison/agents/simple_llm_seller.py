@@ -84,6 +84,7 @@ class SimpleLLMSellerAgent():
         self.role = "seller"
         self.item_info = item_info # 2025/9/18 追加
         self.lm = lm # 2025/7/15 追加
+        self.strategy_name = "free"
 
         # 状態のトラッキング
         self.conversation_history = []

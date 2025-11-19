@@ -386,6 +386,8 @@ class BaseAgent:
 
         # 自分自身の状態を更新する
         message = self.update_state(message)
+        print("self.last_action: ", self.last_action) ########
+        print("self.all_price_history: ", self.all_price_history) ########
         return message
 
 

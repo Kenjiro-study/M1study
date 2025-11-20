@@ -195,6 +195,8 @@ class MetricsCollector:
         seller_model: str,
         buyer_strategy: str,
         seller_strategy: str,
+        buyer_agent: str,
+        seller_agent: str,
         scenario_id: str,
         initial_price: float,
         target_prices: dict[str, float]
@@ -232,7 +234,7 @@ class MetricsCollector:
 
         # 分析結果を保存
         self.negotiations[scenario_id] = analysis
-        pair_key = f"{buyer_model}:{buyer_strategy}_{seller_model}:{seller_strategy}"
+        pair_key = f"{buyer_model}:{buyer_strategy}:{buyer_agent}_{seller_model}:{seller_strategy}:{seller_agent}"
         if pair_key not in self.model_pairs:
             self.model_pairs[pair_key] = []
         self.model_pairs[pair_key].append(analysis)
@@ -318,6 +320,8 @@ def test_metrics_collector():
         seller_model='llama-3.1-8b',
         buyer_strategy='length',
         seller_strategy='fair',
+        buyer_agent='damf',
+        seller_agent='damf',
         scenario_id='test_1',
         initial_price=200.0,
         target_prices={'buyer': 100.0, 'seller': 180.0}

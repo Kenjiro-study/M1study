@@ -26,6 +26,7 @@ class ExperimentConfig:
     turn_timeout: float # 1回の応答生成における最大待ち時間(秒)(これを超えるとタイムアウトエラー)
     models: List[str] # 実験で使用するAIモデルの名前をリストで指定
     strategies: List[str] # 実験で使用する交渉戦略をリストで指定
+    agents: List[str] # 実験で使用するエージェントをリストで指定
 
 
 # core model configurations
@@ -58,13 +59,15 @@ MODEL_CONFIGS: Dict[str, ModelConfig] = {
 EXPERIMENT_CONFIGS: Dict[str, ExperimentConfig] = {
     "baseline": ExperimentConfig(
         num_scenarios=50,
-        #num_scenarios=2,
+        #num_scenarios=1,
         max_turns=20,
         turn_timeout=30.0,
         #models=["llama3.1"],
         models=["llama3.3:70b"],
-        strategies=["length", "fair", "utility"]
-        #strategies=["fair"]
+        strategies=["length", "fair", "utility"],
+        #strategies=["fair"],
+        agents=["damf", "search", "simple", "all"] 
+        #agents=["damf"] 
     ),
     "human_negotiation": ExperimentConfig(
         #num_scenarios=100,
@@ -74,22 +77,9 @@ EXPERIMENT_CONFIGS: Dict[str, ExperimentConfig] = {
         #models=["llama3.1"],
         models=["llama3.3:70b"],
         #strategies=["length", "fair", "utility"]
-        strategies=["fair"]
+        strategies=["fair"],
+        agents=["damf"] 
     ),
-    "model_comparison": ExperimentConfig(
-        num_scenarios=200,
-        max_turns=20,
-        turn_timeout=30.0,
-        models=["llama3.1", "llama3.3:70b"],
-        strategies=["length", "fair"]
-    ),
-    "strategy_analysis": ExperimentConfig(
-        num_scenarios=150,
-        max_turns=25,
-        turn_timeout=30.0,
-        models=["llama3.3:70b"],
-        strategies=["length", "fair", "utility"]
-    )
 }
 
 # 分析の configuration

@@ -95,7 +95,7 @@ class SellerAgent(BaseAgent):
             accept_line = self.target_price * random.uniform(1.0, 0.95)
         else:
             raise ValueError("Invalid strategy name")
-        print("seller_accept_line: ", accept_line)
+        #print("seller_accept_line: ", accept_line)
         return accept_line
 
     def min_price_select(self) -> float:
@@ -316,7 +316,7 @@ class SellerAgent(BaseAgent):
 
     def predict_action_manager(self) -> dict:
         self.update_negotiation_phase()
-        print("current_phase: ", self.current_phase)
+        #print("current_phase: ", self.current_phase)
         if self.last_action == "agree":
             return{
                 "intent": "accept",

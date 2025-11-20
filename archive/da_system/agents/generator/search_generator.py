@@ -53,7 +53,7 @@ class SearchGenerator:
         loc = self.get_filter(used_templates=used_templates, **kwargs)
         if loc is None:
             return None
-        print("loc: ", loc)
+        #print("loc: ", loc)
 
         if isinstance(context, list):
             # リストにトークンごとに分けられている文を一つの文章に戻す
@@ -145,16 +145,16 @@ def test_search_generator():
     partner_text = "Hello, this charger is great as it can charge 2 devices at the same time. The price is only $10"
 
     tokens = price_tracker.link_entity(tokenize(partner_text), kb=kb, scale=False) # craigslistbargain/core/price-tracker.pyで価格を検出してトークナイズ
-    print("tokens: ", tokens)
+    #print("tokens: ", tokens)
     partner_template = extract_template(tokens, kb) # タイトルやprice-trackerを使用して発話の一部をプレースホルダに置き換えてテンプレートを作成
-    print("partner_template: ", partner_template)
+    #print("partner_template: ", partner_template)
     
     kb["partner_template"] = partner_template
 
     search_generator =  SearchGenerator(template, kb)
 
     response = search_generator.template_message(action, price=price)
-    print("response: ", response)
+    #print("response: ", response)
 
 if __name__ == "__main__":
     manager = test_search_generator()

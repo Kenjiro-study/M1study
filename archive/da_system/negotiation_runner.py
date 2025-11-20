@@ -6,6 +6,12 @@ from datetime import datetime
 
 from .agents.buyer import BuyerAgent
 from .agents.seller import SellerAgent
+from .agents.search_buyer import SearchBaseBuyerAgent
+from .agents.search_seller import SearchBaseSellerAgent
+from .agents.simple_llm_buyer import SimpleLLMBuyerAgent
+from .agents.simple_llm_seller import SimpleLLMSellerAgent
+from .agents.all_one_buyer import AllinOneLLMBuyerAgent
+from .agents.all_one_seller import AllinOneLLMSellerAgent
 from .agents.human import HumanAgent
 from .agents.extractor import PriceExtractor
 from .scenario_manager import NegotiationScenario
@@ -23,6 +29,8 @@ class NegotiationConfig:
     seller_model: str
     buyer_strategy: str
     seller_strategy: str
+    buyer_agent: str
+    seller_agent: str
     max_turns: int
     turn_timeout: float
 
@@ -81,6 +89,7 @@ class NegotiationRunner:
             seller_lm = self.dspy_manager.get_lm(
                 config.seller_model,
                 strategy_name=config.seller_strategy,
+                agent_name=config.seller_agent,
                 role='seller'
             )
             buyer = HumanAgent(
@@ -120,6 +129,7 @@ class NegotiationRunner:
             buyer_lm = self.dspy_manager.get_lm(
                 config.buyer_model,
                 strategy_name=config.buyer_strategy,
+                agent_name=config.buyer_agent,
                 role='buyer'
             )
             buyer = BuyerAgent(
@@ -148,12 +158,10 @@ class NegotiationRunner:
                     "description": (config.scenario).description
                 }
             )
-            #buyer.max_price = buyer.max_price_select()
-            print("buyer's target_price: ", buyer.target_price) ############
-            print("buyer's max_price: ", buyer.max_price) ############
-            #seller.min_price = seller.min_price_select()
-            print("seller's target_price: ", seller.target_price) ############
-            print("seller's min_price: ", seller.min_price) #########
+            #print("buyer's target_price: ", buyer.target_price) ############
+            #print("buyer's max_price: ", buyer.max_price) ############
+            #print("seller's target_price: ", seller.target_price) ############
+            #print("seller's min_price: ", seller.min_price) #########
 
         else:
             # 戦略固有の構成をもつ DSPy LMs を取得する
@@ -161,41 +169,130 @@ class NegotiationRunner:
                 config.buyer_model,
                 config.seller_model,
                 config.buyer_strategy,
-                config.seller_strategy
+                config.seller_strategy,
+                config.buyer_agent,
+                config.seller_agent
             )
-            # シナリオのコンテキストでエージェントを作成する
-            buyer = BuyerAgent(
-                strategy_name=config.buyer_strategy,
-                target_price=config.scenario.buyer_target,
-                list_price=config.scenario.list_price,
-                category=config.scenario.category,
-                item_info={
-                    "item_name": (config.scenario).title,
-                    "category": (config.scenario).category,
-                    "list_price": (config.scenario).list_price,
-                    "description": (config.scenario).description
-                },
-                lm=buyer_lm
-            )
-            seller = SellerAgent(
-                strategy_name=config.seller_strategy,
-                target_price=config.scenario.seller_target,
-                list_price=config.scenario.list_price,
-                category=config.scenario.category,
-                item_info={
-                    "item_name": (config.scenario).title,
-                    "category": (config.scenario).category,
-                    "list_price": (config.scenario).list_price,
-                    "description": (config.scenario).description
-                },
-                lm=seller_lm
-            )
-            #buyer.max_price = buyer.max_price_select()
-            print("buyer's target_price: ", buyer.target_price) ############
-            print("buyer's max_price: ", buyer.max_price) ###########
-            #seller.min_price = seller.min_price_select()
-            print("seller's target_price: ", seller.target_price) ############
-            print("seller's min_price: ", seller.min_price) #########
+            if config.seller_agent == "damf":
+                seller = SellerAgent(
+                    strategy_name=config.seller_strategy,
+                    target_price=config.scenario.seller_target,
+                    list_price=config.scenario.list_price,
+                    category=config.scenario.category,
+                    item_info={
+                        "item_name": (config.scenario).title,
+                        "category": (config.scenario).category,
+                        "list_price": (config.scenario).list_price,
+                        "description": (config.scenario).description
+                    },
+                    lm=seller_lm
+                )
+            elif config.seller_agent == "search":
+                seller = SearchBaseSellerAgent(
+                    strategy_name=config.seller_strategy,
+                    target_price=config.scenario.seller_target,
+                    list_price=config.scenario.list_price,
+                    category=config.scenario.category,
+                    item_info={
+                        "item_name": (config.scenario).title,
+                        "category": (config.scenario).category,
+                        "list_price": (config.scenario).list_price,
+                        "description": (config.scenario).description
+                    },
+                    lm=seller_lm
+                )
+            elif config.seller_agent == "simple":
+                seller = SimpleLLMSellerAgent(
+                    target_price=config.scenario.seller_target,
+                    list_price=config.scenario.list_price,
+                    category=config.scenario.category,
+                    item_info={
+                        "item_name": (config.scenario).title,
+                        "category": (config.scenario).category,
+                        "list_price": (config.scenario).list_price,
+                        "description": (config.scenario).description
+                    },
+                    lm=seller_lm
+                )
+            elif config.seller_agent == "all":
+                seller = AllinOneLLMSellerAgent(
+                    target_price=config.scenario.seller_target,
+                    list_price=config.scenario.list_price,
+                    category=config.scenario.category,
+                    item_info={
+                        "item_name": (config.scenario).title,
+                        "category": (config.scenario).category,
+                        "list_price": (config.scenario).list_price,
+                        "description": (config.scenario).description
+                    },
+                    lm=seller_lm
+                )
+            else:
+                print("config.seller_agent:", config.seller_agent)
+                raise ValueError("Invalid agent name.")
+            
+            if config.buyer_agent == "damf":
+                buyer = BuyerAgent(
+                    strategy_name=config.buyer_strategy,
+                    target_price=config.scenario.buyer_target,
+                    list_price=config.scenario.list_price,
+                    category=config.scenario.category,
+                    item_info={
+                        "item_name": (config.scenario).title,
+                        "category": (config.scenario).category,
+                        "list_price": (config.scenario).list_price,
+                        "description": (config.scenario).description
+                    },
+                    lm=buyer_lm
+                )
+            elif config.buyer_agent == "search":
+                buyer = SearchBaseBuyerAgent(
+                    strategy_name=config.buyer_strategy,
+                    target_price=config.scenario.buyer_target,
+                    list_price=config.scenario.list_price,
+                    category=config.scenario.category,
+                    item_info={
+                        "item_name": (config.scenario).title,
+                        "category": (config.scenario).category,
+                        "list_price": (config.scenario).list_price,
+                        "description": (config.scenario).description
+                    },
+                    lm=buyer_lm
+                )
+            elif config.buyer_agent == "simple":
+                buyer = SimpleLLMBuyerAgent(
+                    target_price=config.scenario.buyer_target,
+                    list_price=config.scenario.list_price,
+                    category=config.scenario.category,
+                    item_info={
+                        "item_name": (config.scenario).title,
+                        "category": (config.scenario).category,
+                        "list_price": (config.scenario).list_price,
+                        "description": (config.scenario).description
+                    },
+                    lm=buyer_lm
+                )
+            elif config.buyer_agent == "all":
+                buyer = AllinOneLLMBuyerAgent(
+                    target_price=config.scenario.buyer_target,
+                    list_price=config.scenario.list_price,
+                    category=config.scenario.category,
+                    item_info={
+                        "item_name": (config.scenario).title,
+                        "category": (config.scenario).category,
+                        "list_price": (config.scenario).list_price,
+                        "description": (config.scenario).description
+                    },
+                    lm=buyer_lm
+                )
+            else:
+                print("config.seller_agent:", config.seller_agent)
+                raise ValueError("Invalid agent name.")
+            
+            #print("buyer's target_price: ", buyer.target_price) ############
+            #print("buyer's max_price: ", buyer.max_price) ###########
+            #print("seller's target_price: ", seller.target_price) ############
+            #print("seller's min_price: ", seller.min_price) #########
         return buyer, seller
     
     # 交渉のために価格抽出器を初期化する
@@ -263,19 +360,6 @@ class NegotiationRunner:
                 response.setdefault('price', None)
                 response.setdefault('intent', 'counter')
 
-                # 価格の変動を検証する
-                #if response['price'] is not None:
-                    #valid = self._validate_price_movement(
-                        #agent_role=response['role'],
-                        #new_price=response['price'],
-                        #metrics=metrics
-                    #)
-                    #if not valid:
-                        #response['intent'] = 'reject'
-                        #logger.warning(f"Invalid price movement: {response}")
-
-            # metrics を更新する
-            # print(f"metrics.messages: {metrics.messages}")
             metrics.turns_taken += 1
             metrics.messages.append(response)
 
@@ -430,6 +514,8 @@ def test_negotiation_runner():
         seller_model="llama3.1",
         buyer_strategy="length",
         seller_strategy="fair",
+        buyer_agent="damf",
+        seller_agent="damf",
         max_turns=5,
         turn_timeout=30.0
     )

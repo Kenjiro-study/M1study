@@ -84,14 +84,48 @@ class ExperimentRunner:
         else:
             for buyer_model in self.config.models:
                 for seller_model in self.config.models:
-                    for buyer_strategy in self.config.strategies:
-                        for seller_strategy in self.config.strategies:
-                            combinations.append({
-                                'buyer_model': buyer_model,
-                                'seller_model': seller_model,
-                                'buyer_strategy': buyer_strategy,
-                                'seller_strategy': seller_strategy
-                            })
+                    for buyer_agent in self.config.agents:
+                        for seller_agent in self.config.agents:
+                            if ((buyer_agent == "damf") or (buyer_agent == "search")) and ((seller_agent == "damf") or (seller_agent == "search")):
+                                for buyer_strategy in self.config.strategies:
+                                    for seller_strategy in self.config.strategies:
+                                        combinations.append({
+                                            'buyer_model': buyer_model,
+                                            'seller_model': seller_model,
+                                            'buyer_strategy': buyer_strategy,
+                                            'seller_strategy': seller_strategy,
+                                            'buyer_agent': buyer_agent,
+                                            'seller_agent': seller_agent
+                                        })
+                            elif ((buyer_agent == "damf") or (buyer_agent == "search")):
+                                for buyer_strategy in self.config.strategies:
+                                    combinations.append({
+                                        'buyer_model': buyer_model,
+                                        'seller_model': seller_model,
+                                        'buyer_strategy': buyer_strategy,
+                                        'seller_strategy': 'free',
+                                        'buyer_agent': buyer_agent,
+                                        'seller_agent': seller_agent
+                                    })
+                            elif ((seller_agent == "damf") or (seller_agent == "search")):
+                                for seller_strategy in self.config.strategies:
+                                    combinations.append({
+                                        'buyer_model': buyer_model,
+                                        'seller_model': seller_model,
+                                        'buyer_strategy': 'free',
+                                        'seller_strategy': buyer_strategy,
+                                        'buyer_agent': buyer_agent,
+                                        'seller_agent': seller_agent
+                                    })
+                            else:
+                                combinations.append({
+                                    'buyer_model': buyer_model,
+                                    'seller_model': seller_model,
+                                    'buyer_strategy': 'free',
+                                    'seller_strategy': 'free',
+                                    'buyer_agent': buyer_agent,
+                                    'seller_agent': seller_agent
+                                })
         return combinations
 
     async def _run_single_combination(
@@ -110,6 +144,8 @@ class ExperimentRunner:
                     seller_model=combination['seller_model'],
                     buyer_strategy=combination['buyer_strategy'],
                     seller_strategy=combination['seller_strategy'],
+                    buyer_agent=combination['buyer_agent'],
+                    seller_agent=combination['seller_agent'],
                     max_turns=self.config.max_turns,
                     turn_timeout=self.config.turn_timeout
                 )
@@ -134,6 +170,8 @@ class ExperimentRunner:
                     seller_model=combination['seller_model'],
                     buyer_strategy=combination['buyer_strategy'],
                     seller_strategy=combination['seller_strategy'],
+                    buyer_agent=combination['buyer_agent'],
+                    seller_agent=combination['seller_agent'],
                     scenario_id=scenario_id,
                     initial_price=configs[0].scenario.list_price,
                     target_prices={
@@ -148,7 +186,7 @@ class ExperimentRunner:
                     combination
                 )
         
-        pair_key = f"{combination['buyer_model']}:{combination['buyer_strategy']}_{combination['seller_model']}:{combination['seller_strategy']}"
+        pair_key = f"{combination['buyer_model']}:{combination['buyer_strategy']}:{combination['buyer_agent']}_{combination['seller_model']}:{combination['seller_strategy']}:{combination['seller_agent']}"
         if pair_key in self.tracker.model_pair_metrics:
             pair_metrics = self.tracker.model_pair_metrics[pair_key]
             pair_metrics.deal_rate += (pair_metrics.num_negotiations - pair_metrics.deal_rate) / len(results)

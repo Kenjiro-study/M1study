@@ -259,7 +259,7 @@ class SimpleLLMSellerAgent():
             intent = "reject"
         else:
             intent = "unknown"
-        print("status: ", status_prediction['status']) ########
+        #print("status: ", status_prediction['status']) ########
 
         with dspy.context(lm=extractor.lm):
             price_prediction = extractor.compiled_extractor(

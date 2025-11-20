@@ -78,6 +78,7 @@ class DSPyManager:
         self,
         model_key: str,
         strategy_name: Optional[str] = None,
+        agent_name: Optional[str] = None,
         role: Optional[str] = None
     ) -> dspy.LM:
         """
@@ -95,7 +96,7 @@ class DSPyManager:
             raise ValueError(f"Unknown model: {model_key}")
 
         # context-specific key の作成
-        context_key = f"{model_key}_{strategy_name}_{role}"
+        context_key = f"{model_key}_{strategy_name}_{agent_name}_{role}"
 
         # まずキャッシュをチェックする
         if context_key in self.lm_cache:
@@ -147,7 +148,9 @@ class DSPyManager:
         buyer_model: str,
         seller_model: str,
         buyer_strategy: str,
-        seller_strategy: str
+        seller_strategy: str,
+        buyer_agent: str,
+        seller_agent: str
     ) -> tuple:
         """
         交渉ペア用に DSPy LMs を構成する
@@ -158,12 +161,14 @@ class DSPyManager:
         buyer_lm = self.get_lm(
             buyer_model,
             strategy_name=buyer_strategy,
+            agent_name=buyer_agent,
             role='buyer'
         )
 
         seller_lm = self.get_lm(
             seller_model,
             strategy_name=seller_strategy,
+            agent_name=seller_agent,
             role='seller'
         )
 

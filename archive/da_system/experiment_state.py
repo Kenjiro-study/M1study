@@ -93,7 +93,7 @@ class ExperimentTracker:
         self.state.scenarios_completed += 1
 
         # モデルペアの metrics を更新する
-        pair_key = f"{combination['buyer_model']}:{combination['buyer_strategy']}_{combination['seller_model']}:{combination['seller_strategy']}"
+        pair_key = f"{combination['buyer_model']}:{combination['buyer_strategy']}:{combination['buyer_agent']}_{combination['seller_model']}:{combination['seller_strategy']}:{combination['seller_agent']}"
         if pair_key not in self.model_pair_metrics:
             self.model_pair_metrics[pair_key] = ModelPairMetrics(
                 buyer_model= f"{combination['buyer_model']}:{combination['buyer_strategy']}",
@@ -104,7 +104,6 @@ class ExperimentTracker:
         pair_metrics.num_negotiations += 1
 
         pair_metrics.avg_fairness += (metrics.fairness - pair_metrics.avg_fairness) / pair_metrics.num_negotiations # 平均公平性
-        print("pair_metrics.avg_fairness: ", pair_metrics.avg_fairness)
         pair_metrics.avg_turns += (metrics.turns_taken - pair_metrics.avg_turns) / pair_metrics.num_negotiations # 平均ターン数
         pair_metrics.avg_buyer_utility += (metrics.buyer_utility - pair_metrics.avg_buyer_utility) / pair_metrics.num_negotiations # 平均buyer効用
         pair_metrics.avg_seller_utility += (metrics.seller_utility - pair_metrics.avg_seller_utility) / pair_metrics.num_negotiations # 平均seller効用

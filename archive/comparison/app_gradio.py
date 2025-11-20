@@ -7,6 +7,7 @@ import uuid
 import os
 import dspy
 import torch
+import copy
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from torch.nn.functional import softmax
 from dataclasses import dataclass, field
@@ -400,7 +401,6 @@ def handle_chat_message(
     # -------------------------------------------------
     try:
         # human.py の update_state() を呼び出す
-        print("human_message_text", human_message_text) #######
         human_message_dict = human_agent.update_state(
             message={"role": human_agent.role, "content": human_message_text},
             extractor=extractor
@@ -408,8 +408,6 @@ def handle_chat_message(
         print(f"Human ({human_agent.role}) state updated. Intent: {human_message_dict['intent']}, Price: {human_message_dict['price']}")
         
         chat_history.append({"role": "user", "content": human_message_text})
-        print("human_agent.last_action: ", human_agent.last_action) ########
-        print("human_agent.all_price_history: ", human_agent.all_price_history) ########
         #ai_agent.partner_data = human_message_dict
         
     except Exception as e:
@@ -440,7 +438,9 @@ def handle_chat_message(
         print(f"AI Agent.step() でエラー: {e}")
         ai_response_dict = {"role": ai_agent.role, "content": f"エラーが発生しました: {e}", "price": None, "intent": "reject"}
     
+    ai_intent_str = copy.copy(ai_response_dict['intent'])
     chat_history.append({"role": "assistant", "content": ai_response_dict["content"]})
+    print("ai seller's accept line: ", ai_agent.accept_line) #######
 
     # -------------------------------------------------
     # 3. ★★★ AIの応答を HumanAgent が解析するターン ★★★
@@ -492,31 +492,69 @@ def handle_chat_message(
              human_agent.conversation_history.append(human_agent.partner_data)
     
     # -------------------------------------------------
-    # 4. 交渉終了判定
+    # 4. 交渉終了判定 (仕様変更対応)
     # -------------------------------------------------
-    continue_negotiation = True
-    if (ai_response_dict['intent'] in ['accept', 'reject']) or (human_message_dict['intent'] in ['accept', 'reject']):
-        continue_negotiation = False
-        
-    if human_agent.num_turns >= config.max_turns:
-        continue_negotiation = False
-        print("最大ターン数に達しました。")
+    print("ai_intent_str: ", ai_intent_str)
+    print("ai_intent_str == 'accept': ", ai_intent_str == 'accept')
     
-    print("continue_negotiation: ", continue_negotiation) ##########
-    if not continue_negotiation:
-        print("交渉終了。評価画面へ遷移します。")
+    # 【パターンA】 AIが「合意(accept)」した場合
+    if ai_intent_str == 'accept':
+        price_info = f" ${ai_agent.all_price_history[-1]}" if ai_agent.all_price_history else ""
+        system_msg = f"**相手が{price_info} で交渉を合意しました。**\n**これ以上メッセージは送らず、下の「交渉合意」ボタンを押してください。**"
+        chat_history.append({"role": "assistant", "content": system_msg})
+        
+        # 画面を更新して、ボタンを有効化 (ユーザーの入力を待つ)
         yield (
-            chat_history, "", human_agent, ai_agent,
-            gr.update(visible=False), gr.update(visible=True),
-            gr.update(interactive=True), gr.update(interactive=True), gr.update(interactive=True)
-        )
-    else:
-        # ボタンを再度有効化
-        yield (
-            chat_history, "", human_agent, ai_agent,
+            chat_history, "", human_agent, ai_agent, 
             gr.update(), gr.update(), 
             gr.update(interactive=True), gr.update(interactive=True), gr.update(interactive=True)
         )
+        return # ここで処理終了
+
+    # 【パターンB】 AIが「拒否(reject)」した場合
+    elif ai_intent_str == 'reject':
+        system_msg = "**相手が交渉終了を選択しました。**\n**これ以上メッセージは送らず、下の「交渉非合意」ボタンを押して交渉を終了してください。**"
+        chat_history.append({"role": "assistant", "content": system_msg})
+        
+        # 画面を更新して、ボタンを有効化 (ユーザーの入力を待つ)
+        yield (
+            chat_history, "", human_agent, ai_agent, 
+            gr.update(), gr.update(), 
+            gr.update(interactive=True), gr.update(interactive=True), gr.update(interactive=True)
+        )
+        return # ここで処理終了
+    
+    # 【パターンC】 最大ターン数に達した場合
+    if human_agent.num_turns >= config.max_turns:
+        print("最大ターン数に達しました。")
+        system_msg = "**最大ターン数に達しました。交渉を終了します。**\n(5秒後に評価画面へ移動します...)"
+        chat_history.append({"role": "assistant", "content": system_msg})
+        
+        # まずメッセージを表示 (ボタンは無効のまま)
+        yield (
+            chat_history, "", human_agent, ai_agent, 
+            gr.update(), gr.update(), 
+            gr.update(interactive=False), gr.update(interactive=False), gr.update(interactive=False)
+        )
+        
+        # 5秒待機
+        time.sleep(5)
+        
+        # 自動で評価画面へ遷移
+        yield (
+            chat_history, "", human_agent, ai_agent,
+            gr.update(visible=False), gr.update(visible=True), # negotiation -> evaluation
+            gr.update(interactive=True), gr.update(interactive=True), gr.update(interactive=True)
+        )
+        return # ここで処理終了
+    
+    # 【パターンD】 交渉継続
+    # チャット履歴を更新して、ボタンを再度有効化
+    yield (
+        chat_history, "", human_agent, ai_agent,
+        gr.update(), gr.update(), 
+        gr.update(interactive=True), gr.update(interactive=True), gr.update(interactive=True)
+    )
 
 def handle_finish_negotiation(
     decision_type,        # [Input] "accept" or "reject"
@@ -560,7 +598,7 @@ def handle_submit_evaluation(
     [流れ3] 評価送信ボタンが押された時の処理
     """
     print("--- イベント: handle_submit_evaluation ---")
-    
+    results_dir = "archive/comparison/results"
     # -------------------------------------------------
     # 1. Agent内部状態からMetricsを事後生成して保存する
     # -------------------------------------------------
@@ -573,14 +611,17 @@ def handle_submit_evaluation(
         buyer = human_agent if human_agent.is_buyer else ai_agent
         seller = ai_agent if human_agent.is_buyer else human_agent
         
-        buyer_utility = buyer.compute_utility(final_price) if final_price else 0.0
-        seller_utility = seller.compute_utility(final_price) if final_price else 0.0
+        buyer_utility = buyer.compute_utility(final_price) if final_price else None
+        seller_utility = seller.compute_utility(final_price) if final_price else None
         
         # Fairness計算
-        median_diff = final_price - ((seller.target_price + buyer.target_price) / 2.0)
-        abs_median_diff = abs(median_diff)
-        target_diff = seller.target_price - buyer.target_price
-        fairness = 1.0 - (2.0 * abs_median_diff / target_diff)
+        if final_price:
+            median_diff = final_price - ((seller.target_price + buyer.target_price) / 2.0)
+            abs_median_diff = abs(median_diff)
+            target_diff = seller.target_price - buyer.target_price
+            fairness = 1.0 - (2.0 * abs_median_diff / target_diff)
+        else:
+            fairness = None
 
         metrics_dict = {
             "start_time": None, # (別途記録必要)
@@ -605,7 +646,9 @@ def handle_submit_evaluation(
         "config": {
             "ai_agent_name": ai_agent.__class__.__name__ if ai_agent else "N/A",
             "ai_agent_role": ai_agent.role if ai_agent else "N/A",
+            "ai_agent_target": ai_agent.target_price if ai_agent else "N/A",
             "human_role": human_agent.role if human_agent else "N/A",
+            "human_target": human_agent.target_price if human_agent else "N/A",
             "scenario_id": config.scenario.scenario_id if config else "N/A",
         },
         "metrics": metrics_dict,
@@ -613,7 +656,7 @@ def handle_submit_evaluation(
     }
     all_results.append(current_result)
     
-    log_filename = f"app_gradio_results_{session_id}.jsonl"
+    log_filename = os.path.join(results_dir, f"app_gradio_results_{session_id}.jsonl")
     try:
         with open(log_filename, "a", encoding="utf-8") as f:
             f.write(json.dumps(current_result, ensure_ascii=False) + "\n")
@@ -627,7 +670,7 @@ def handle_submit_evaluation(
     if not task_queue: # ★ `task_queue` を見る
         # --- 9. 全てのパターンが終了 ---
         print("全セッション終了。")
-        final_filename = f"app_gradio_results_FINAL_{session_id}.json"
+        final_filename = os.path.join(results_dir, f"app_gradio_results_FINAL_{session_id}.json")
         try:
             with open(final_filename, "w", encoding="utf-8") as f:
                 json.dump(all_results, f, indent=2, ensure_ascii=False)
@@ -753,6 +796,7 @@ with gr.Blocks(theme=theme) as demo:
     with gr.Group(visible=False) as end_group:
         gr.Markdown("## 実験終了")
         gr.Markdown("全ての交渉が終了しました。ご協力ありがとうございました。")
+        gr.Markdown("このウィンドウを閉じて実験を終了してください。終了後, **<span style='color: red; '>slackのtime-morimotoに終了スタンプ</span>** をお願いいたします。")
 
     # -----------------------------------------------------------------
     # 6. イベント紐付け
@@ -871,4 +915,20 @@ if __name__ == "__main__":
         print(f"HumanAgentのTransformerモデルのロードに失敗しました: {e}")
         print("パス (checkpoint) が正しいか確認してください。")
     
-    demo.launch()
+    # ログイン処理
+    auth_users = [
+        ("user1", "55katfuji!!"), # (ID, Password)
+        ("user2", "55katfuji!!"),
+        ("morimoto", "55katfuji!!"),
+        # ... 必要な人数分追加 ...
+    ]
+
+    print("--- 実験アプリを起動します ---")
+    print("アクセス時にIDとパスワードが求められます。")
+    
+    demo.launch(
+        server_name="0.0.0.0", # ローカルネットワーク内からもアクセス可能にする設定
+        server_port=7860,
+        auth=auth_users,       # ★ ここで認証を設定
+        share=False            # ngrokを使うので、Gradio標準のshareはFalseにしておきます
+    )

@@ -113,8 +113,6 @@ class HumanAgent:
             predicted_class = torch.argmax(probabilities, dim=1).item() # 確率が最も高いものを推定ラベルとして決定
             predicted_class = parser.config.id2label[predicted_class] # ラベル番号をダイアログアクトに変換
 
-        self.num_turns += 1 # ターンを一つ進める
-
         return predicted_class
 
     def update_state(self, message: Dict[str, str], extractor) -> Dict:
@@ -205,6 +203,7 @@ class HumanAgent:
             # パートナー情報の更新
             self.conversation_history.append(self.partner_data)
             self.pertner_intent_history.append(self.partner_data['intent'])
+            self.num_turns += 1 # ターンを一つ進める
             if self.partner_data['price'] != None:
                 self.partner_price_history.append(self.partner_data['price'])
             print(f"parser result: {self.partner_data['intent']}(price={self.partner_data['price']})") ########

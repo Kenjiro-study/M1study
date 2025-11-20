@@ -203,6 +203,10 @@ class BaseAgent:
         return predicted_class
 
     def update_negotiation_phase(self):
+        # 一度価格交渉フェーズに入ったら戻らない
+        if self.current_phase == NegotiationPhase.PRICE_NEGOTIATION:
+            return
+        
         # 0 or 1ターン目で相手のintentがintroの場合、GREETINGフェーズに移動
         if self.num_turns == 0 or (self.num_turns == 1 and self.partner_data and self.partner_data['intent'] != "init-price"):
             self.current_phase = NegotiationPhase.GREETING

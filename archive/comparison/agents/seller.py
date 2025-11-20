@@ -88,7 +88,7 @@ class SellerAgent(BaseAgent):
 
     def accept_line_select(self) -> float:
         if self.strategy_name == "fair":
-            accept_line = self.target_price * random.uniform(1.0, 8.5)
+            accept_line = self.target_price * random.uniform(1.0, 0.85)
         elif self.strategy_name == "utility":
             accept_line = self.target_price * random.uniform(1.0, 0.9)
         elif self.strategy_name == "length":
@@ -143,6 +143,8 @@ class SellerAgent(BaseAgent):
         return context
     
     def fair_manager(self) -> dict:
+        print("self.pertner_intent_history: ", self.pertner_intent_history) #######
+        print("self.pertner_intent_history.count('counter-price') + self.pertner_intent_history.count('insist'): ", self.pertner_intent_history.count("counter-price") + self.pertner_intent_history.count("insist")) #######
         if self.partner_data['price'] != None:
             if self.partner_data['price'] >= self.accept_line:
                 return{

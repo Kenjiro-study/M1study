@@ -88,7 +88,7 @@ class SellerAgent(BaseAgent):
 
     def accept_line_select(self) -> float:
         if self.strategy_name == "fair":
-            accept_line = self.target_price * random.uniform(1.0, 8.5)
+            accept_line = self.target_price * random.uniform(1.0, 0.85)
         elif self.strategy_name == "utility":
             accept_line = self.target_price * random.uniform(1.0, 0.9)
         elif self.strategy_name == "length":

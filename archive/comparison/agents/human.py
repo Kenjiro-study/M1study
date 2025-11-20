@@ -113,9 +113,8 @@ class HumanAgent:
             probabilities = softmax(logits, dim=1) # ロジットをソフトマックス関数で確率に変換
             predicted_class = torch.argmax(probabilities, dim=1).item() # 確率が最も高いものを推定ラベルとして決定
             predicted_class = parser.config.id2label[predicted_class] # ラベル番号をダイアログアクトに変換
-
-        self.num_turns += 1 # ターンを一つ進める
-
+        
+        self.num_turns += 1
         return predicted_class
 
     def update_state(self, message: Dict[str, str], extractor) -> Dict:
@@ -169,7 +168,7 @@ class HumanAgent:
 
         # 会話状態を更新する
         self.conversation_history.append(message)
-        self.num_turns += 1
+        #self.num_turns += 1
 
         return message
 
@@ -209,6 +208,7 @@ class HumanAgent:
             # パートナー情報の更新
             self.conversation_history.append(self.partner_data)
             self.pertner_intent_history.append(self.partner_data['intent'])
+            #self.num_turns += 1 # ターンを一つ進める
             if self.partner_data['price'] != None:
                 self.partner_price_history.append(self.partner_data['price'])
                 self.all_price_history.append(self.partner_data['price'])

@@ -33,7 +33,11 @@ class ModelPairMetrics:
     buyer_model: str
     seller_model: str
     num_negotiations: int = 0
+    seller_hcv: int = 0
+    buyer_hcv: int = 0
     deal_rate: float = 0.0
+    seller_hcv_rate: float = 0.0
+    buyer_hcv_rate: float = 0.0
     avg_turns: float = 0.0
     avg_buyer_utility: float = 0.0
     avg_seller_utility: float = 0.0
@@ -96,12 +100,16 @@ class ExperimentTracker:
         pair_key = f"{combination['buyer_model']}:{combination['buyer_strategy']}:{combination['buyer_agent']}_{combination['seller_model']}:{combination['seller_strategy']}:{combination['seller_agent']}"
         if pair_key not in self.model_pair_metrics:
             self.model_pair_metrics[pair_key] = ModelPairMetrics(
-                buyer_model= f"{combination['buyer_model']}:{combination['buyer_strategy']}",
-                seller_model= f"{combination['seller_model']}:{combination['seller_strategy']}"
+                buyer_model= f"{combination['buyer_model']}:{combination['buyer_strategy']}:{combination['buyer_agent']}",
+                seller_model= f"{combination['seller_model']}:{combination['seller_strategy']}:{combination['seller_agent']}"
             )
 
         pair_metrics = self.model_pair_metrics[pair_key]
         pair_metrics.num_negotiations += 1
+        if metrics.buyer_hcv == True:
+            pair_metrics.buyer_hcv += 1
+        elif metrics.seller_hcv == True:
+            pair_metrics.seller_hcv += 1
 
         pair_metrics.avg_fairness += (metrics.fairness - pair_metrics.avg_fairness) / pair_metrics.num_negotiations # 平均公平性
         pair_metrics.avg_turns += (metrics.turns_taken - pair_metrics.avg_turns) / pair_metrics.num_negotiations # 平均ターン数

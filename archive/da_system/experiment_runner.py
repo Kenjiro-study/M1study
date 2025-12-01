@@ -189,7 +189,10 @@ class ExperimentRunner:
         pair_key = f"{combination['buyer_model']}:{combination['buyer_strategy']}:{combination['buyer_agent']}_{combination['seller_model']}:{combination['seller_strategy']}:{combination['seller_agent']}"
         if pair_key in self.tracker.model_pair_metrics:
             pair_metrics = self.tracker.model_pair_metrics[pair_key]
-            pair_metrics.deal_rate += (pair_metrics.num_negotiations - pair_metrics.deal_rate) / len(results)
+            pair_metrics.deal_rate = pair_metrics.num_negotiations / len(results)
+            # ハード制約違反率 (Hard Constraint Violation Rate) 最低or最高価格を破ってしまった回数
+            pair_metrics.seller_hcv_rate = pair_metrics.seller_hcv / len(results)
+            pair_metrics.buyer_hcv_rate = pair_metrics.buyer_hcv / len(results)
 
     async def run(self):
         """完全な実験を実行する"""

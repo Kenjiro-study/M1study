@@ -160,63 +160,63 @@ CATEGORY_CONTEXT = {
 # intentごとの説明
 BUYER_INTENT_CONTEXT = {
     # --- 交渉の開始と情報収集 ---
-    "intro": "Greet the seller briefly or express your interest in their product briefly.",
-    "inquire": "Briefly ask the seller specific questions about the item (e.g., condition, usage, accessories, shipping).",
-    "inform": "Answer a question concisely from the seller. Provide the requested information clearly.",
-    "supplemental": "Briefly provide supplementary information (e.g., your reason for wanting to buy, your budget, etc) to support your price or request. This is for justification, not a direct offer.",
+    "intro": "Say 'Hi' or express interest very briefly. Keep it casual, like a text message.",
+    "inquire": "Ask a quick, short question about condition/shipping. Use simple words. No formal grammar.",
+    "inform": "Answer the seller's question with just the necessary info. Be blunt and efficient.",
+    "supplemental": "Briefly mention your budget or reason (e.g., 'student here'). Use this to gain sympathy, not as a formal offer.",
     # --- 価格交渉（offer_price が必須） ---
-    "init-price": "Concisely Make the *first* price proposal. Your response *must* include the `offer_price`.",
-    "counter-price": "Concisely Make a counter-offer in response to the seller. Your response *must* include the `offer_price`.",
-    "insist": "Re-state your previous `offer_price`. Hold your ground.",
+    "init-price": "Throw out your first price offer casually. Just the number and a short phrase (e.g., 'How about $X?').",
+    "counter-price": "Counter with a new price. Be direct and short. Do not write a long explanation.",
+    "insist": "Repeat your price stubbornly. Say you can't go higher. Keep it short.",
     # --- 価格交渉（offer_price を使わない） ---
-    "vague-price": "Negotiate the price concisely *without* making a specific offer. (e.g., 'Can you lower the price?', 'What's your best offer?'). Do *not* include an `offer_price`.",
+    "vague-price": "Ask for a discount without naming a price yet. Use phrases like 'Can you lower it?' or 'Too expensive'.",
     # --- 交渉中の応答 ---
-    "disagree": "Reject the seller's *current* offer or proposal, *but continue* the negotiation. (e.g., 'That price is still too high.').",
-    "agree": "Explicitly accept the seller's *current* offer or price. This signals the price negotiation is over, but does not end the chat.",
-    "thanks": "A simple, polite expression of thanks during the negotiation. (e.g., 'Thank you.').",
+    "disagree": "Reject the current price briefly. Say 'That's too high' or 'No thanks'. Don't be polite.",
+    "agree": "Say 'OK' or 'I'll take it' to the current price. Keep it very short.",
+    "thanks": "Say 'Thanks' or 'Cool'. No formal appreciation needed.",
     # --- 交渉の終了 ---
-    "accept": "Formally accept the agreed-upon deal. Express gratitude and finalize the negotiation. (e.g., 'Great, I'll take it for $X. Thank you!').",
-    "reject": "Formally *end the negotiation without a deal*. Politely inform the seller that you are walking away. (e.g., 'I understand, but I will pass this time. Thank you.')."
+    "accept": "Finalize the deal. Say 'Buying now' or 'Deal'. Express excitement briefly.",
+    "reject": "Walk away from the negotiation. Say 'I'll pass' or 'Never mind'. Be decisive and short."
 }
 
 SELLER_INTENT_CONTEXT = {
     # --- 交渉の開始と情報収集 ---
-    "intro": "Greet the buyer briefly.",
-    "inquire": "Briefly ask the buyer if they have any specific questions about the product.",
-    "inform": "Answer a question concisely from the buyer. Provide the requested information clearly.",
-    "supplemental": "Briefly provide supplementary information (e.g., market price, item flaws, etc) to support your price or request. This is for justification, not a direct offer.",
+    "intro": "Say 'Hello' or 'Thanks for looking'. Keep it friendly but very short.",
+    "inquire": "Ask the buyer a quick question (e.g., 'Where do you live?'). Keep it simple.",
+    "inform": "Answer the buyer's question concisely. Don't write a long description, just the facts.",
+    "supplemental": "Briefly mention a selling point (e.g., 'It's almost new') to justify the price. Keep it casual.",
     # --- 価格交渉（offer_price が必須） ---
-    "init-price": "Concisely make the *first* price proposal. Your response *must* include the `offer_price`.",
-    "counter-price": "Concisely make a counter-offer in response to the buyer. Your response *must* include the `offer_price`.", #and provide a brief reason.
-    "insist": "Re-state your previous `offer_price`. Hold your ground.",
+    "init-price": "Propose a price simply. Say 'I can do $X' or 'How about $X?'. No formal business language.",
+    "counter-price": "Counter with a new price. Say 'I can drop to $X' or '$X is my limit'. Be direct.",
+    "insist": "Stick to your price. Say 'Sorry, can't lower it' or 'Final price'. Be firm.",
     # --- 価格交渉（offer_price を使わない） ---
-    "vague-price": "Negotiate the price concisely *without* making a specific offer. (e.g., 'Can you lower the price?', 'What's your best offer?'). Do *not* include an `offer_price`.",
+    "vague-price": "Ask the buyer for their budget. Say 'How much are you thinking?' or 'Make an offer'.",
     # --- 交渉中の応答 ---
-    "disagree": "Reject the buyer's *current* offer or proposal, *but continue* the negotiation. (e.g., 'That price is still too low.').",
-    "agree": "Explicitly accept the buyer's *current* offer or price. This signals the price negotiation is over, but does not end the chat.",
-    "thanks": "A simple, polite expression of thanks during the negotiation. (e.g., 'Thank you.').",
+    "disagree": "Say 'No' to the buyer's offer. Tell them it's too low politely but firmly (e.g., 'Too low, sorry').",
+    "agree": "Accept the offer. Say 'OK, changing price now' or 'Sure'.",
+    "thanks": "Say 'Thanks'. Keep it casual.",
     # --- 交渉の終了 ---
-    "accept": "Formally accept the agreed-upon deal. Express gratitude and finalize the negotiation. (e.g., 'Great, I'll take it for $X. Thank you!').",
-    "reject": "Formally *end the negotiation without a deal*. Politely inform the buyer that you are walking away. (e.g., 'I understand, but I will pass this time. Thank you.')."
+    "accept": "Confirm the deal. Say 'Thanks, please buy it'. Close the chat happily.",
+    "reject": "End the negotiation. Say 'Sorry, I can't do that' and stop the deal. Be clear."
 }
 
 BUYER_LANGUAGE_SKILLS = {
-    "Emphasis": "Highlight the cost value, quality or highest price of the product to show the rationality of the pricing.",
-    "Emotional Strategy": "Use humor, expressions, complaints, and identity recognition to resonate with the other party.",
-    "Compare the Market": "Compare the product with other products on the market to justify your proposed price.",
-    "Transaction Guarantee": "Promise to ensure transaction security and reliability by not returning or cancelling or by sharing our past transaction history.",
-    "Create Urgency": "Create urgency by reiterating the possibility of a more advanced version of the product or a price may drop soon.",
-    "Chat": "Do not use techniques and simply reply to the other party."
+    "Emphasis": "Complain that the item isn't worth the asking price. Point out flaws or age to drive the price down aggressively.",
+    "Emotional Strategy": "Act friendly or play the victim (e.g., 'I'm broke', 'It's for my kid'). Use emotional words or emojis to bond.",
+    "Compare the Market": "Mention that others are selling it cheaper. Say 'I saw this for $X elsewhere' to pressure the seller.",
+    "Transaction Guarantee": "Promise immediate payment. Say 'I pay right now' or 'Instant decision' to tempt the seller.",
+    "Create Urgency": "Say you might buy something else if they don't decide now. 'Deciding between this and another one'.",
+    "Chat": "Just reply normally like a text message. No special tactics, just short and lazy response."
 }
 
 SELLER_LANGUAGE_SKILLS = {
-    "Emphasis": "Highlight the cost value, quality or bottom price of the product to show the rationality of the pricing.",
-    "Added Value": "Provide additional value beyond the product, such as gifts, free shipping, etc.",
-    "Emotional Strategy": "Use humor, expressions, complaints, and identity recognition to resonate with the other party.",
-    "Compare the Market": "Compare the product with other products on the market to highlight the advantages of its own products.",
-    "Transaction Guarantee": "Promise to ensure transaction security and reliability by offering good after-sales service.",
-    "Create Urgency": "Create urgency by reminding that the product may sell out soon or prices may rise shortly.",
-    "Chat": "Do not use techniques and simply reply to the other party."
+    "Emphasis": "Brag about the item condition. Say 'It's basically new' or 'I paid a lot for this' to justify your price.",
+    "Added Value": "Offer a small bonus like 'free shipping' or 'quick delivery' to close the deal. Make it sound like a special favor.",
+    "Emotional Strategy": "Act friendly or express hardship (e.g., 'I need money', 'Sad to let this go'). Appeal to their sympathy.",
+    "Compare the Market": "Claim this is already the cheapest on the app. Say 'Cheapest one here' or 'Others are more expensive'.",
+    "Transaction Guarantee": "Promise to ship immediately or pack carefully. 'I ship today' is a strong closer.",
+    "Create Urgency": "Lie slightly that others are watching. Say 'Someone else is interested' or 'Might sell soon'.",
+    "Chat": "Just reply normally like a text message. No special tactics, just short and lazy response."
 }
 
 

@@ -18,6 +18,8 @@ class NegotiationResponse(dspy.Signature):
 
     [RESPONSE CONSTRAINTS]
     - You must not sell below the 'minimum_price'.
+    - **The response MUST be natural and human-like.**
+    - **The response MUST be short and concise, focusing on one main point**
 
     [GOAL]
     - Negotiate to sell the product at the highest possible price.

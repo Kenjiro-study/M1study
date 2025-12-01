@@ -15,17 +15,17 @@ IntentType = Literal['intro', 'inquire', 'inform', 'init-price', 'counter-price'
 StatusType = Literal['ACCEPTANCE', 'REJECTION', 'CONTINUE']
 
 BUYER_INTENT_DEFINITION = """
-    - intro: Greetings and starting negotiations. Greet the seller briefly or express your interest in their product briefly.
-    - inquire: Questions about products and conditions. Briefly ask the seller specific questions about the item (e.g., condition, usage, accessories, shipping).
-    - inform: Providing information. Answer a question concisely from the seller. Provide the requested information clearly.
-    - supplemental: Additional information and conditions provided. Briefly provide supplementary information (e.g., your reason for wanting to buy, your budget, etc) to support your price or request. This is for justification, not a direct offer.
-    - init-price: First Price Offer. Concisely Make the *first* price proposal. Your response *must* include the `offer_price`.
-    - counter-price: Presenting a counter offer. Concisely Make a counter-offer in response to the seller. Your response *must* include the `offer_price`.
-    - insist: Stick to previous offer price. Re-state your previous `offer_price`. Hold your ground.
-    - vague-price: Vague price mentions. Negotiate the price concisely *without* making a specific offer. (e.g., 'Can you lower the price?', 'What's your best offer?'). Do *not* include an `offer_price`.
-    - disagree: Disagree with the partner's offer. Reject the seller's *current* offer or proposal, *but continue* the negotiation. (e.g., 'That price is still too high.').
-    - agree: Agree with the partner's offer. Explicitly accept the seller's *current* offer or price. This signals the price negotiation is over, but does not end the chat.
-    - thanks: Showing gratitude. A simple, polite expression of thanks during the negotiation. (e.g., 'Thank you.').
+    - intro: Select at the start of negotiations. Say 'Hi' or express interest very briefly. Keep it casual, like a text message.
+    - inquire: Select this when you need to ask about details such as the condition of the product. Ask a quick, short question about condition/shipping. Use simple words. No formal grammar.
+    - inform: Select when answering a question from the other person. Answer the seller's question with just the necessary info. Be blunt and efficient.
+    - supplemental: Select to provide additional information (e.g., product benefits) when the partner's intent was *not* `inquire`. Briefly mention your budget or reason (e.g., 'student here'). Use this to gain sympathy, not as a formal offer.
+    - init-price: Select to make the *first* price proposal. Throw out your first price offer casually. Just the number and a short phrase (e.g., 'How about $X?').
+    - counter-price: Select to propose a *different* price after the partner has proposed an `init-price` or `counter-price`. Counter with a new price. Be direct and short. Do not write a long explanation.
+    - insist: Select to re-state your *previous price* after the partner has made a `counter-price`. Repeat your price stubbornly. Say you can't go higher. Keep it short.
+    - vague-price: Select to negotiate indirectly without stating a specific price (e.g., "That's a bit high..."). Ask for a discount without naming a price yet. Use phrases like 'Can you lower it?' or 'Too expensive'.
+    - disagree: Select this to decline the deal and end negotiations. Reject the current price briefly. Say 'That's too high' or 'No thanks'. Don't be polite.
+    - agree: Select this when you agree to trade at the price proposed by the other party. Say 'OK' or 'I'll take it' to the current price. Keep it very short.
+    - thanks: Select to express your gratitude for reaching an agreement (Condition: Only if your partner's "partner_intent" is "agree" or "thanks”). Say 'Thanks' or 'Cool'. No formal appreciation needed.
 """
 
 class NegotiationTurn(BaseModel):
@@ -51,6 +51,8 @@ class NegotiationResponse(dspy.Signature):
     
     [RESPONSE CONSTRAINTS]
     - You must not exceed your 'budget', otherwise you should reject the offer and say you cannot afford it.
+    - **The response MUST be natural and human-like.**
+    - **The response MUST be short and concise, focusing on one main point**
 
     [GOAL]
     - Negotiate to obtain the product at the lowest possible price.

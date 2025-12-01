@@ -320,12 +320,21 @@ def initialize_session(session_task: tuple):
 
     return human_agent, ai_agent, config, scenario_text, operate_text, caution_text, initial_chat_history
 
-def handle_start_experiment():
+def handle_start_experiment(request: gr.Request):
     """
     [流れ1] 実験開始ボタンが押された時の処理
     """
     print("--- イベント: handle_start_experiment ---")
-    session_id = str(uuid.uuid4())
+    if request and request.username:
+        user_name = request.username
+    else:
+        user_name = "guest" # 認証なし、またはローカルテストの場合
+    
+    # ファイル名が被らないように「ユーザー名_日時」をIDとする
+    # 例: user1_20251118-103000
+    timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    session_id = f"{user_name}_{timestamp}"
+
     print(f"セッションID (被験者ID) を発行: {session_id}")
     
     # ★★★ シナリオとエージェントをzipする ★★★
@@ -620,6 +629,11 @@ def handle_submit_evaluation(
             abs_median_diff = abs(median_diff)
             target_diff = seller.target_price - buyer.target_price
             fairness = 1.0 - (2.0 * abs_median_diff / target_diff)
+
+            if fairness >= 1.0:
+                fairness = 1.0
+            elif fairness <= 0.0:
+                fairness = 0.0
         else:
             fairness = None
 
@@ -917,10 +931,17 @@ if __name__ == "__main__":
     
     # ログイン処理
     auth_users = [
-        ("user1", "55katfuji!!"), # (ID, Password)
-        ("user2", "55katfuji!!"),
-        ("morimoto", "55katfuji!!"),
-        # ... 必要な人数分追加 ...
+        ("morimoto", "55katfuji!!"), # (ID, Password)
+        ("kitashima", "55katfuji!!"),
+        ("genseki", "55katfuji!!"),
+        ("honda", "55katfuji!!"),
+        ("watanabe", "55katfuji!!"),
+        ("fukutoku", "55katfuji!!"),
+        ("kobayashi", "55katfuji!!"),
+        ("mochizuki", "55katfuji!!"),
+        ("sota", "55katfuji!!"),
+        ("kon", "55katfuji!!"),
+        ("matsumoto", "55katfuji!!"),
     ]
 
     print("--- 実験アプリを起動します ---")

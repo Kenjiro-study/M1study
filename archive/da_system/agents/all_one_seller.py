@@ -15,17 +15,17 @@ IntentType = Literal['intro', 'inquire', 'inform', 'init-price', 'counter-price'
 StatusType = Literal['ACCEPTANCE', 'REJECTION', 'CONTINUE']
 
 SELLER_INTENT_DEFINITION = """
-    - intro: Greetings and starting negotiations. Greet the buyer briefly.
-    - inquire: Check if the buyer has any questions. Briefly ask the buyer if they have any specific questions about the product.
-    - inform: Providing information. Answer a question concisely from the buyer. Provide the requested information clearly.
-    - supplemental: Additional information and conditions provided. Briefly provide supplementary information (e.g., market price, item flaws, etc) to support your price or request. This is for justification, not a direct offer.
-    - init-price: First Price Offer. Concisely make the *first* price proposal. Your response *must* include the `offer_price`.
-    - counter-price: Presenting a counter offer. Concisely make a counter-offer in response to the buyer. Your response *must* include the `offer_price`.
-    - insist: Stick to previous offer price. Re-state your previous `offer_price`. Hold your ground.
-    - vague-price: Vague price mentions. Negotiate the price concisely *without* making a specific offer. (e.g., 'Can you lower the price?', 'What's your best offer?'). Do *not* include an `offer_price`.
-    - disagree: Disagree with the partner's offer. Reject the buyer's *current* offer or proposal, *but continue* the negotiation. (e.g., 'That price is still too low.').
-    - agree: Agree with the partner's offer. Explicitly accept the buyer's *current* offer or price. This signals the price negotiation is over, but does not end the chat.
-    - thanks: Showing gratitude. A simple, polite expression of thanks during the negotiation. (e.g., 'Thank you.').
+    - intro: Select at the start of negotiations. Say 'Hello' or 'Thanks for looking'. Keep it friendly but very short.
+    - inquire: Select this when you need to ask about details such as the condition of the product. Ask the buyer a quick question (e.g., 'Where do you live?'). Keep it simple.
+    - inform: Select when answering a question from the other person. Answer the buyer's question concisely. Don't write a long description, just the facts.
+    - supplemental: Select to provide additional information (e.g., product benefits) when the partner's intent was *not* `inquire`. Briefly mention a selling point (e.g., 'It's almost new') to justify the price. Keep it casual.
+    - init-price: Select to make the *first* price proposal. Propose a price simply. Say 'I can do $X' or 'How about $X?'. No formal business language.
+    - counter-price: Select to propose a *different* price after the partner has proposed an `init-price` or `counter-price`. Counter with a new price. Say 'I can drop to $X' or '$X is my limit'. Be direct.
+    - insist: Select to re-state your *previous price* after the partner has made a `counter-price`. Repeat your price stubbornly. Stick to your price. Say 'Sorry, can't lower it' or 'Final price'. Be firm.
+    - vague-price: Select to negotiate indirectly without stating a specific price (e.g., "That's a bit high...").Ask the buyer for their budget. Say 'How much are you thinking?' or 'Make an offer'.
+    - disagree: Select this to decline the deal and end negotiations. Say 'No' to the buyer's offer. Tell them it's too low politely but firmly (e.g., 'Too low, sorry').
+    - agree: Select this when you agree to trade at the price proposed by the other party. Accept the offer. Say 'OK, changing price now' or 'Sure'.
+    - thanks: Select to express your gratitude for reaching an agreement (Condition: Only if your partner's "partner_intent" is "agree" or "thanks”).Say 'Thanks'. Keep it casual.
 """
 
 class NegotiationTurn(BaseModel):
@@ -50,6 +50,8 @@ class NegotiationResponse(dspy.Signature):
     
     [RESPONSE CONSTRAINTS]
     - You must not sell below the 'minimum_price'.
+    - **The response MUST be natural and human-like.**
+    - **The response MUST be short and concise, focusing on one main point**
 
     [GOAL]
     - Negotiate to sell the product at the highest possible price.

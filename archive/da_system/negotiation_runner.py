@@ -40,6 +40,10 @@ class NegotiationMetrics:
     start_time: datetime
     end_time: Optional[datetime] = None
     turns_taken: int = 0
+    buyer_hcv: bool = False
+    seller_hcv: bool = False
+    buyer_target_price: Optional[float] = None
+    seller_target_price: Optional[float] = None
     final_price: Optional[float] = None
     buyer_utility: Optional[float] = None
     seller_utility: Optional[float] = None
@@ -406,6 +410,8 @@ class NegotiationRunner:
             try:
                 # エージェントを初期化
                 buyer, seller = self._initialize_agents(config)
+                metrics.buyer_target_price = buyer.target_price
+                metrics.seller_target_price = seller.target_price
                 # 価格抽出器を初期化 2025/9/17追加
                 price_extractor = self._initialize_extractor()
                 
@@ -450,6 +456,12 @@ class NegotiationRunner:
         abs_median_diff = abs(median_diff)
         target_diff = seller_target_price - buyer_target_price
         fairness = 1.0 - (2.0 * abs_median_diff / target_diff)
+
+        if fairness >= 1.0:
+            fairness = 1.0
+        elif fairness <= 0.0:
+            fairness = 0.0
+
         return fairness
 
 
@@ -465,6 +477,10 @@ class NegotiationRunner:
             metrics.buyer_utility = buyer.compute_utility(metrics.final_price)
             metrics.seller_utility = seller.compute_utility(metrics.final_price)
             metrics.fairness = self._compute_fairness(metrics.final_price, buyer.target_price, seller.target_price)
+            if metrics.final_price > buyer.max_price:
+                metrics.buyer_hcv = True
+            elif metrics.final_price < seller.min_price:
+                metrics.seller_hcv = True
 
     async def run_batch(
         self,

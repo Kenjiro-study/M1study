@@ -184,7 +184,8 @@ class SellerAgent(BaseAgent):
                 price = self.min_price
             
             if self.accept_line > price:
-                self.accept_line = price * random.uniform(0.8, 0.9)
+                price = self.round_three_digit(self.accept_line)
+                self.accept_line = price * random.uniform(0.8, 0.95)
 
         elif intent == "insist":
             if not self.price_history:
@@ -237,7 +238,8 @@ class SellerAgent(BaseAgent):
                 price = self.min_price
             
             if self.accept_line > price:
-                self.accept_line = price * random.uniform(0.8, 0.9)
+                price = self.round_three_digit(self.accept_line)
+                self.accept_line = price * random.uniform(0.8, 0.95)
 
         elif intent == "insist":
             if not self.price_history:
@@ -290,7 +292,8 @@ class SellerAgent(BaseAgent):
                 price = self.min_price
             
             if self.accept_line > price:
-                self.accept_line = price * random.uniform(0.8, 0.9)
+                price = self.round_three_digit(self.accept_line)
+                self.accept_line = price * random.uniform(0.8, 0.95)
 
         elif intent == "insist":
             if not self.price_history:

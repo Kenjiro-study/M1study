@@ -51,6 +51,8 @@ class NegotiationResponse(dspy.Signature):
     
     [RESPONSE CONSTRAINTS]
     - You must not exceed your 'budget', otherwise you should reject the offer and say you cannot afford it.
+    - **The response MUST be natural and human-like.**
+    - **The response MUST be short and concise, focusing on one main point**
 
     [GOAL]
     - Negotiate to obtain the product at the lowest possible price.

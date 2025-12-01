@@ -52,22 +52,34 @@ MODEL_CONFIGS: Dict[str, ModelConfig] = {
             "List Price: {list_price}\n"
             "Description: {description}"
         ),
-    )
+    ),
+    "gpt-oss:20b": ModelConfig(
+        name="ollama/gpt-oss:20b",
+        max_tokens=8192,
+        temperature=0.7,
+        prompt_template=(
+            "Product name: {item_name}\n"
+            "Category: {category}\n"
+            "List Price: {list_price}\n"
+            "Description: {description}"
+        ),
+    ),
 }
 
 # あらかじめ定義された実験の configurations
 EXPERIMENT_CONFIGS: Dict[str, ExperimentConfig] = {
     "baseline": ExperimentConfig(
-        num_scenarios=50,
-        #num_scenarios=1,
+        #num_scenarios=10,
+        num_scenarios=1,
         max_turns=20,
         turn_timeout=30.0,
         #models=["llama3.1"],
         models=["llama3.3:70b"],
-        strategies=["length", "fair", "utility"],
-        #strategies=["fair"],
-        agents=["damf", "search", "simple", "all"] 
-        #agents=["damf"] 
+        #models=["gpt-oss:20b"],
+        #strategies=["length", "fair", "utility"],
+        strategies=["fair"],
+        #agents=["damf", "search", "simple", "all"] 
+        agents=["all"] 
     ),
     "human_negotiation": ExperimentConfig(
         #num_scenarios=100,
@@ -76,6 +88,7 @@ EXPERIMENT_CONFIGS: Dict[str, ExperimentConfig] = {
         turn_timeout=30.0,
         #models=["llama3.1"],
         models=["llama3.3:70b"],
+        #models=["gpt-oss:20b"],
         #strategies=["length", "fair", "utility"]
         strategies=["fair"],
         agents=["damf"] 
